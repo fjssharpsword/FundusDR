@@ -31,11 +31,10 @@ class ATNet(nn.Module):
         
     def forward(self, x):
         #x: 3*256*256
-       
+        
         x = self.msa(x) * x
         out = self.dense_net_121(x) 
         return out
-
         """
         x = self.msa(x) * x
         x = self.dense_net_121.features(x) #output: 1024*8*8
@@ -45,25 +44,8 @@ class ATNet(nn.Module):
         tr_out = torch.mean(x, dim=1, keepdim=True).squeeze()
         bce_out = torch.mean(x, dim=2, keepdim=True).squeeze()
         return tr_out, bce_out
-         """
- 
-#AUROC=0.8228, batchsize=512
-class MultiScaleAttention(nn.Module):#spatial attention module
-    def __init__(self):
-        super(MultiScaleAttention, self).__init__()
-        self.aggConv = nn.Conv2d(2, 1, kernel_size=3, padding=1, bias=False)
-        self.sigmoid = nn.Sigmoid()
-        
-    def forward(self, x):
-        avg_out = torch.mean(x, dim=1, keepdim=True)
-        max_out, _ = torch.max(x, dim=1, keepdim=True)
-        x = torch.cat([avg_out, max_out], dim=1)
-        x = self.sigmoid(self.aggConv(x))
-
-        return x
-        
-"""
-#AUROC=0.8201, batchsize=512
+        """
+         
 class MultiScaleAttention(nn.Module):#multi-scal attention module
     def __init__(self):
         super(MultiScaleAttention, self).__init__()
@@ -90,59 +72,23 @@ class MultiScaleAttention(nn.Module):#multi-scal attention module
         x = self.sigmoid(self.aggConv(x))
 
         return x
-"""  
+
 """
-class MultiScaleAttention(nn.Module):#multi-scal attention module
+class MultiScaleAttention(nn.Module):#spatial attention module
     def __init__(self):
         super(MultiScaleAttention, self).__init__()
-        
-        self.scaleConv1 = nn.Conv2d(3, 3, kernel_size=5, padding=2, bias=False)
-        self.scaleConv2 = nn.Conv2d(3, 3, kernel_size=9, padding=4, bias=False)
-        #self.aggConv = nn.Conv2d(3, 1, kernel_size=3, padding=1, bias=False)
-        self.bn = nn.BatchNorm2d(3) #channel=1
-        
-    def forward(self, x):
-        out, _ = torch.max(x, dim=1, keepdim=True)
-        out1 = self.scaleConv1(x)
-        out1, _ = torch.max(out1, dim=1, keepdim=True)
-        out2 = self.scaleConv2(x)
-        out2, _ = torch.max(out2, dim=1, keepdim=True)
-        
-        x = torch.cat([out, out1, out2], dim=1)
-        #x = self.bn(self.aggConv(x))
-        x = self.bn(x)
-        return x
-"""
-"""
-class MultiSpatialAttention(nn.Module):#spatial attention layer
-    def __init__(self):
-        super(MultiSpatialAttention, self).__init__()
-        self.AggConv = nn.Conv2d(3, 1, kernel_size=3, padding=1, bias=False)
+        self.aggConv = nn.Conv2d(2, 1, kernel_size=3, padding=1, bias=False)
         self.sigmoid = nn.Sigmoid()
-        self.bn = nn.BatchNorm2d(1) #channel=1
-        
-        self.avg_pool_1 = nn.AdaptiveAvgPool2d((224, 224))
-        self.avg_pool_2 = nn.AdaptiveAvgPool2d((112, 112))
-        self.avg_pool_3 = nn.AdaptiveAvgPool2d((56, 56))
         
     def forward(self, x):
-        #scale1
-        max_out_1, _ = torch.max(x, dim=1, keepdim=True)
-        #scale2
-        x = self.avg_pool_2(x)
-        max_out_2, _ = torch.max(x, dim=1, keepdim=True)
-        max_out_2 = self.avg_pool_1(max_out_2)
-        #scale3
-        x= self.avg_pool_3(x)
-        max_out_3, _ = torch.max(x, dim=1, keepdim=True)
-        max_out_3 = self.avg_pool_1(max_out_3)
-        #aggregation
-        out = torch.cat([max_out_1, max_out_2, max_out_3], dim=1)
-        out = self.bn(self.AggConv(out))
-        
-        return out
-"""
-    
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x = torch.cat([avg_out, max_out], dim=1)
+        x = self.sigmoid(self.aggConv(x))
+
+        return x
+"""    
+
 if __name__ == "__main__":
     #for debug   
     x = torch.rand(10, 3, 256, 256).to(torch.device('cuda:%d'%7))

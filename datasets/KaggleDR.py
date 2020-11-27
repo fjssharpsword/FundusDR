@@ -9,6 +9,8 @@ import numpy as np
 import time
 import random
 from sklearn.model_selection import train_test_split
+
+from config import *
 """
 Dataset: Diabetic Retinopathy Detection
 https://www.kaggle.com/c/diabetic-retinopathy-detection/data
@@ -65,8 +67,8 @@ normalize = transforms.Normalize(
 )
 
 transform_seq = transforms.Compose([
-   transforms.Resize((256,256)),
-   transforms.CenterCrop(224),
+   transforms.Resize((config['TRAN_SIZE'],config['TRAN_SIZE'])),
+   transforms.CenterCrop(config['TRAN_CROP']),
    transforms.ToTensor(),
    normalize,
 ])

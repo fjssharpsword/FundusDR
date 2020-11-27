@@ -24,6 +24,7 @@ from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, g
 from utils.Evaluation import compute_AUCs, compute_ROCCurve
 from nets.ATNet import ATNet
 from nets.ResNet import resnet50
+from nets.DenseNet import DenseNet121
 from nets.TripletRankingLoss import TripletRankingLoss
 from utils.logger import get_logger
 from config import *
@@ -57,7 +58,7 @@ def Train():
     model = nn.DataParallel(model).cuda()  # make model available multi GPU cores training
     torch.backends.cudnn.benchmark = True  # improve train speed slightly
     bce_criterion = nn.BCELoss() #define binary cross-entropy loss
-    tl_criterion = TripletRankingLoss()
+    #tl_criterion = TripletRankingLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
     lr_scheduler_model = lr_scheduler.StepLR(optimizer , step_size = 10, gamma = 1)
     print('********************load model succeed!********************')
@@ -77,7 +78,7 @@ def Train():
                 var_label = torch.autograd.Variable(label).cuda()
                 optimizer.zero_grad()
                 var_output = model(var_image)#forward
-                loss_tensor = bce_criterion(var_output, var_label)   
+                loss_tensor = bce_criterion(var_output, var_label)
                 loss_tensor.backward() 
                 optimizer.step()##update parameters 
                 sys.stdout.write('\r Epoch: {} / Step: {} : train loss = {}'.format(epoch+1, batch_idx+1, float('%0.6f'%loss_tensor.item()) ))
@@ -97,7 +98,7 @@ def Train():
                 var_label = torch.autograd.Variable(label).cuda()
                 var_output = model(var_image)#forward
                 pred = torch.cat((pred, var_output.data), 0)
-                loss_tensor = bce_criterion(var_output, var_label)   
+                loss_tensor = bce_criterion(var_output, var_label)
                 sys.stdout.write('\r Epoch: {} / Step: {} : validation loss ={}'.format(epoch+1, batch_idx+1, float('%0.6f'%loss_tensor.item()) ))
                 sys.stdout.flush()
                 val_loss.append(loss_tensor.item())

@@ -18,39 +18,23 @@ class TripletRankingLoss(nn.Module):
 
     #sampling one triplet samples for each sample
     def _selTripletSamples(self, pred:Tensor, gt:Tensor)-> Tuple[Tensor, Tensor, Tensor]:
-        idxs_a = torch.where(torch.sum(gt, 1)>0)[0] #disease sample as anchor
-        idxs_a_cpu = idxs_a.cpu()
-        idxs_n = torch.where(torch.sum(gt, 1)==0)[0] #normal sample as negative
-        idxs_n_cpu = idxs_n.cpu()
         anchor = torch.FloatTensor().cuda()
         positive = torch.FloatTensor().cuda()
         negative = torch.FloatTensor().cuda()
 
-        if (len(idxs_a_cpu)>0 and len(idxs_n_cpu)>0):
-            for id_a in idxs_a_cpu:
-                cols = torch.where(gt[id_a]==1)[0]
-                rows_pos = torch.where(gt[:, cols]==1)[0]
-                rows_pos = np.unique(rows_pos.cpu().numpy())
-                if len(rows_pos)>0:
-                    rows_neg = np.setdiff1d(idxs_a_cpu, rows_pos) #Subtraction
-                    rows_neg = np.union1d(rows_neg, idxs_n_cpu) #not intersect1d
-                    rows_neg = np.unique(rows_neg)
-                    #anchor
-                    anchor = torch.cat((anchor, pred[id_a,:].unsqueeze(0).cuda()), 0) 
-                    #positive
-                    id_p = random.sample(list(rows_pos), 1)[0]
-                    positive = torch.cat((positive, pred[id_p,:].unsqueeze(0).cuda()), 0)
-                    #negative
-                    id_n = random.sample(list(rows_neg), 1)[0]
-                    negative = torch.cat((negative, pred[id_n,:].unsqueeze(0).cuda()), 0)
-            
-            for id_a in idxs_n_cpu:
-                anchor = torch.cat((anchor, pred[id_a,:].unsqueeze(0).cuda()), 0)
+        #for id_a, (prob, label) in enumerate(zip(pred, gt)):
+        for id_a, (label) in enumerate(gt):
+            col = torch.where(label==1)[0]
+            rows_pos = torch.where(gt[:, col]==1)[0]
+            rows_neg = torch.where(gt[:, col]==0)[0]
+            if len(rows_pos)>0 and len(rows_neg>0):
+                #anchor
+                anchor = torch.cat((anchor, pred[id_a,:].unsqueeze(0).cuda()), 0) 
                 #positive
-                id_p = random.sample(list(idxs_n_cpu), 1)[0]
+                id_p = random.sample(list(rows_pos), 1)[0]
                 positive = torch.cat((positive, pred[id_p,:].unsqueeze(0).cuda()), 0)
-                #nagative
-                id_n = random.sample(list(idxs_a_cpu), 1)[0]
+                #negative
+                id_n = random.sample(list(rows_neg), 1)[0]
                 negative = torch.cat((negative, pred[id_n,:].unsqueeze(0).cuda()), 0)
 
         return anchor, positive, negative
@@ -64,7 +48,7 @@ class TripletRankingLoss(nn.Module):
             loss = torch.where(cos_v<0, torch.zeros_like(cos_v), cos_v)#max(cos_v, 0)
             loss = torch.mean(loss).requires_grad_()
         else:
-            loss = tensor.float(0.0)
+            loss = torch.float(0.0)
         return loss
 
     """
@@ -80,7 +64,7 @@ class TripletRankingLoss(nn.Module):
             f"feats.size(0): {feats.size(0)} is not equal to labels.size(0): {labels.size(0)}"
 
         mask = torch.matmul(labels, torch.t(labels))
-        mask = torch.where(mask==2, torch.zeros_like(mask), mask)
+        #mask = torch.where(mask==2, torch.zeros_like(mask), mask) #for multi-label
         pos_mask = mask.triu(diagonal=1)
         neg_mask = (mask - 1).abs_().triu(diagonal=1)
         if self.similarity == 'dot':
@@ -93,7 +77,7 @@ class TripletRankingLoss(nn.Module):
 
         pos_pair_ = sim_mat[pos_mask == 1]
         neg_pair_ = sim_mat[neg_mask == 1]
-        #neg_pair_ = sim_mat[neg_mask == 1][0:len(pos_pair_)]
+        #neg_pair_ = sim_mat[neg_mask == 1][0:len(pos_pair_)] #for sampling part normal 
 
         alpha_p = torch.relu(-pos_pair_ + 1 + self.margin)
         alpha_n = torch.relu(neg_pair_ + self.margin)
@@ -107,16 +91,14 @@ class TripletRankingLoss(nn.Module):
     
 if __name__ == "__main__":
     #for debug   
-    gt = torch.zeros(512, 14)
+    gt = torch.zeros(512, 5)
     pred = torch.rand(512, 64)
-    for i in range(250):#generate 1 randomly
-        row = random.randint(0,511)
-        ones_n = random.randint(1,2)
-        col = [random.randint(0,13) for _ in range(ones_n)]
+    for i in range(512):#generate 1 randomly
+        col = random.randint(0,4)
         gt[i, col] = 1
     #a = torch.rand(512, 14)
     #p = torch.rand(512, 14)
     #n = torch.rand(512, 14)
     trl = TripletRankingLoss()
-    loss = trl(pred,gt,sample=False)
+    loss = trl(pred, gt)
     print(loss)

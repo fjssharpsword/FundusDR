@@ -7,8 +7,10 @@ config = {
             'CUDA_VISIBLE_DEVICES': "0,1,2,3,4,5,6,7",
             'MAX_EPOCHS': 20,
             'BATCH_SIZE': 512,#128
-            'sizeX': 50, 
-            'sizeY': 50
+            'TRAN_SIZE': 256,
+            'TRAN_CROP': 224,
+            'sizeX': 20, 
+            'sizeY': 20
          } 
 
 #config for dataset
