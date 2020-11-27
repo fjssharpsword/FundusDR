@@ -25,7 +25,8 @@ import scipy.ndimage.filters as filters
 from scipy.ndimage import binary_dilation
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-
+from PIL import Image, ImageDraw
+import PIL.ImageOps
 #self-defined
 from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
 from utils.Evaluation import compute_AUCs, compute_ROCCurve
@@ -75,42 +76,34 @@ def LocHeatmap(CKPT_PATH, model_name):
             probs, idx = h_x.sort(0, True) #probabilities of classe
             var_feature = model.dense_net_121.features(var_image) #get feature maps
             cam_img = returnCAM(var_feature.cpu().data.numpy(), weight_softmax, idx[0].item())
-            box = returnBox(cam_img)
+            x_c,  y_c = returnBox(cam_img)
             #plot
-            color_map = cv2.applyColorMap(cam_img, cv2.COLORMAP_JET)
-            image = image + 1 #[-1,1]->[1, 2]
+            image = (image + 1).squeeze().permute(1, 2, 0) #[-1,1]->[1, 2]
             image = (image - image.min()) / (image.max() - image.min()) #[1, 2]->[0,1]
-            image = image.numpy()*255 #[0,1] ->[0,255]
-            #output_img = cv2.addWeighted(image, 0.7, color_map, 0.3, 0)
+            image = np.uint8(255 * image) #[0,1] ->[0,255]
+
+            color_map = cv2.applyColorMap(cam_img, cv2.COLORMAP_JET)
+            color_map = Image.fromarray(color_map)#.convert('RGB')#PIL.Image
+            mask_img = Image.new('RGBA', color_map.size, color=0) #transparency
+            #paste heatmap
+            w, h = config['sizeX'], config['sizeY']
+            upper = int(max(x_c-(w/2), 0.))
+            left = int(max(y_c-(h/2), 0.))
+            right = min(upper+w, color_map.size[0])
+            lower = min(left+h, color_map.size[1])
+            roi_area = (upper, left, right, lower)
+            cropped_roi = color_map.crop(roi_area)
+            mask_img.paste(cropped_roi, roi_area)
+
+            output_img = cv2.addWeighted(image, 0.7, np.asarray(mask_img.convert('RGB')), 0.3, 0)
             fig, ax = plt.subplots(1)# Create figure and axes
-            ax.imshow(image)
+            ax.imshow(output_img)
+            rect = patches.Rectangle((upper, left), w, h, linewidth=2, edgecolor='b', facecolor='none')# Create a Rectangle patch
+            ax.add_patch(rect)# Add the patch to the Axes
             ax.axis('off')
             fig.savefig(config['img_path']+str(batch_idx)+'.jpg')
-            #sys.stdout.write('\r Visualization process: = {}'.format(batch_idx+1))
-            #sys.stdout.flush()
-            break
-
-            """
-            output_img = OverlapImages(gtbox[0].numpy(), predBoxes, heat_map, raw_img) #crop heatmap and merge
-            
-            x,y,w,h = gtbox[0][0], gtbox[0][1], gtbox[0][2], gtbox[0][3]
-            rect = patches.Rectangle((x, y), w, h,linewidth=2, edgecolor='r', facecolor='none')# Create a Rectangle patch
-            ax.add_patch(rect)# Add the patch to the Axes
-            for i in range(len(predBoxes)):
-                x_p,y_p,w_p,h_p = predBoxes[i][0], predBoxes[i][1], predBoxes[i][2], predBoxes[i][3]
-                IoU_score, _ = compute_IoUs_and_Dices([x,y,w,h],[x_p,y_p,w_p,h_p])
-                rect = patches.Rectangle((x_p, y_p), w_p, h_p,linewidth=2, edgecolor='b', facecolor='none')# Create a Rectangle patch
-                ax.add_patch(rect)# Add the patch to the Axes
-                ax.text(x_p, y_p, '{:.4f}'.format(IoU_score))
-            ax.axis('off')
-
-            gt_idx = np.where(label[0]==1)[0][0]
-            gt_label = np.array(CLASS_NAMES)[gt_idx]
-            gt_idx = np.where(idx.cpu().numpy()==gt_idx)[0][0]
-            img_file = 'gt-{}-{:.4f}_pred-{}-{:.4f}'.format(gt_label, probs[gt_idx].cpu().item(), CLASS_NAMES[idx[0].item()], probs[0].cpu().item())
-            fig.savefig('./Imgs/'+img_file+'.jpg')
-            
-            """
+            sys.stdout.write('\r Visualization process: = {}'.format(batch_idx+1))
+            sys.stdout.flush()
 
 # generate class activation mapping for the predicted classed
 def returnCAM(feature_conv, weight_softmax, class_idx):
@@ -149,7 +142,36 @@ def returnBox(data): #predicted bounding boxes
             data_xy = data[int(pt[0]), int(pt[1])]
             x_c = int(pt[0])
             y_c = int(pt[1]) 
-    return [x_c, y_c]
+    return x_c,  y_c
+
+def saveHeatmap_resize(self, filename, gcam, raw_image):
+    #raw_image = self.ReadRawImage(raw_image) #resize, crop and turn to numpy
+    #gcam = cv2.applyColorMap(np.uint8(gcam * 255.0), cv2.COLORMAP_JET) #L to RGB
+    #gcam = cv2.addWeighted(raw_image, 0.5, gcam, 0.5, 0)
+    #cv2.imwrite(filename, np.uint8(gcam))
+    raw_image = self.ReadRawImage(raw_image)
+    x_c, y_c = self.genHeatBoxes(gcam)
+
+    heat_map = cv2.applyColorMap(np.uint8(gcam * 255.0), cv2.COLORMAP_JET) #L to RGB
+    heat_map = Image.fromarray(heat_map)#.convert('RGB')#PIL.Image
+    mask_img = Image.new('RGBA', heat_map.size, color=0) #transparency
+    #paste heatmap
+    w, h = config['sizeX'], config['sizeY']
+    upper = int(max(x_c-(w/2), 0.))
+    left = int(max(y_c-(h/2), 0.))
+    right = min(upper+w, heat_map.size[0])
+    lower = min(left+h, heat_map.size[1])
+    roi_area = (upper, left, right, lower)
+    cropped_roi = heat_map.crop(roi_area)
+    mask_img.paste(cropped_roi, roi_area)
+    output_img = cv2.addWeighted(raw_image, 0.5, np.asarray(mask_img.convert('RGB')), 0.5, 0)
+
+    fig, ax = plt.subplots(1)# Create figure and axes
+    ax.imshow(output_img)
+    rect = patches.Rectangle((upper, left), w, h, linewidth=2, edgecolor='b', facecolor='none')# Create a Rectangle patch
+    ax.add_patch(rect)# Add the patch to the Axes
+    ax.axis('off')
+    fig.savefig(filename)
 
 def main(model_name):
     CKPT_PATH = config['CKPT_PATH']+ model_name +'/best_model.pkl'
