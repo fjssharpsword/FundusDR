@@ -17,6 +17,8 @@ import cv2
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 from PIL import Image
+#define by myself
+from nets.RMAC import RMAC
 
 #construct model
 class ATNet(nn.Module):
@@ -28,13 +30,15 @@ class ATNet(nn.Module):
         self.msa = MultiScaleAttention()
         self.fc = nn.Conv2d(num_fc_kernels, num_classes, kernel_size=3, padding=1, bias=False)
         self.sigmoid = nn.Sigmoid()
+        self.rmac = RMAC(level_n=3)
         
     def forward(self, x):
         #x: 3*256*256
-        
+        """
         x = self.msa(x) * x
         out = self.dense_net_121(x) 
         return out
+        """
         """
         x = self.msa(x) * x
         x = self.dense_net_121.features(x) #output: 1024*8*8
@@ -45,6 +49,11 @@ class ATNet(nn.Module):
         bce_out = torch.mean(x, dim=2, keepdim=True).squeeze()
         return tr_out, bce_out
         """
+        x = self.msa(x) * x
+        x = self.dense_net_121.features(x) #output: 1024*7*7
+        x = self.rmac(x) #1024
+        out = self.dense_net_121.classifier(x)
+        return out
          
 class MultiScaleAttention(nn.Module):#multi-scal attention module
     def __init__(self):
