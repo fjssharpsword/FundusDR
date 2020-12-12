@@ -48,8 +48,7 @@ def compute_AUCs(gt, pred):
         AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
     return AUROCs
 
-
-def compute_IoUs_and_Dices(xywh1, xywh2):
+def compute_IoUs(xywh1, xywh2):
     x1, y1, w1, h1 = xywh1
     x2, y2, w2, h2 = xywh2
 
@@ -59,5 +58,5 @@ def compute_IoUs_and_Dices(xywh1, xywh2):
     
     union = w1 * h1 + w2 * h2 - intersection
     IoUs = intersection / union
-    Dices = 2*IoUs / (IoUs+1)
-    return IoUs, Dices
+    
+    return IoUs

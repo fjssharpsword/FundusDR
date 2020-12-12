@@ -68,7 +68,8 @@ normalize = transforms.Normalize(
 
 transform_seq = transforms.Compose([
    transforms.Resize((config['TRAN_SIZE'],config['TRAN_SIZE'])),
-   transforms.CenterCrop(config['TRAN_CROP']),
+   #transforms.CenterCrop(config['TRAN_CROP']),
+   transforms.RandomCrop(config['TRAN_CROP']),
    transforms.ToTensor(),
    normalize,
 ])
