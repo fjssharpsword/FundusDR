@@ -66,10 +66,16 @@ normalize = transforms.Normalize(
    std=[0.229, 0.224, 0.225]
 )
 
-transform_seq = transforms.Compose([
+transform_seq_tr = transforms.Compose([
    transforms.Resize((config['TRAN_SIZE'],config['TRAN_SIZE'])),
-   #transforms.CenterCrop(config['TRAN_CROP']),
    transforms.RandomCrop(config['TRAN_CROP']),
+   transforms.ToTensor(),
+   normalize,
+])
+
+transform_seq_te = transforms.Compose([
+   transforms.Resize((config['TRAN_SIZE'],config['TRAN_SIZE'])),
+   transforms.CenterCrop(config['TRAN_CROP']),
    transforms.ToTensor(),
    normalize,
 ])
@@ -81,7 +87,7 @@ PATH_TO_TEST_FILE = '/data/pycode/FundusDR/datasets/test.txt'
 
 def get_train_dataloader(batch_size, shuffle, num_workers):
     dataset_train = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,
-                                     path_to_dataset_file=PATH_TO_TRAIN_FILE, transform=transform_seq)
+                                     path_to_dataset_file=PATH_TO_TRAIN_FILE, transform=transform_seq_tr)
     #sampler_train = torch.utils.data.distributed.DistributedSampler(dataset_train) #for multi cpu and multi gpu
     #data_loader_train = DataLoader(dataset=dataset_train, batch_size=batch_size, sampler = sampler_train, 
                                    #shuffle=shuffle, num_workers=num_workers, pin_memory=True)
@@ -91,7 +97,7 @@ def get_train_dataloader(batch_size, shuffle, num_workers):
 
 def get_validation_dataloader(batch_size, shuffle, num_workers):
     dataset_validation = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,
-                                          path_to_dataset_file=PATH_TO_VAL_FILE, transform=transform_seq)
+                                          path_to_dataset_file=PATH_TO_VAL_FILE, transform=transform_seq_te)
     data_loader_validation = DataLoader(dataset=dataset_validation, batch_size=batch_size,
                                    shuffle=shuffle, num_workers=num_workers, pin_memory=True)
     return data_loader_validation
@@ -99,7 +105,7 @@ def get_validation_dataloader(batch_size, shuffle, num_workers):
 
 def get_test_dataloader(batch_size, shuffle, num_workers):
     dataset_test = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,
-                                    path_to_dataset_file=PATH_TO_TEST_FILE, transform=transform_seq)
+                                    path_to_dataset_file=PATH_TO_TEST_FILE, transform=transform_seq_te)
     data_loader_test = DataLoader(dataset=dataset_test, batch_size=batch_size,
                                    shuffle=shuffle, num_workers=num_workers, pin_memory=True)
     return data_loader_test

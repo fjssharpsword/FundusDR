@@ -23,7 +23,7 @@ from skimage.measure import label
 from config import *
 from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
 from utils.Evaluation import compute_AUCs, compute_ROCCurve, compute_IoUs
-from nets.CXRNet import CXRClassifier, ROIGenerator, FusionClassifier
+from nets.CXRNet import ImageClassifier, RegionClassifier, FusionClassifier
 
 #command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')
@@ -43,14 +43,12 @@ def Train():
     print('********************load model********************')
     # initialize and load the model
     if args.model == 'CXRNet':
-        model_img = CXRClassifier(num_classes=N_CLASSES, is_pre_trained=True, is_roi=False).cuda()#initialize model 
+        model_img = ImageClassifier(num_classes=N_CLASSES, is_pre_trained=True).cuda()#initialize model 
         #model_img = nn.DataParallel(model_img).cuda()  # make model available multi GPU cores training
         optimizer_img = optim.Adam(model_img.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
         lr_scheduler_img = lr_scheduler.StepLR(optimizer_img, step_size = 10, gamma = 1)
 
-        roigen = ROIGenerator(TRANS_CROP = config['TRAN_CROP'])
-
-        model_roi = CXRClassifier(num_classes=N_CLASSES, is_pre_trained=True, is_roi=True).cuda()
+        model_roi = RegionClassifier(num_classes=N_CLASSES, is_pre_trained=True).cuda()
         #model_roi = nn.DataParallel(model_roi).cuda()
         optimizer_roi = optim.Adam(model_roi.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
         lr_scheduler_roi = lr_scheduler.StepLR(optimizer_roi, step_size = 10, gamma = 1)
@@ -82,29 +80,27 @@ def Train():
                 optimizer_img.zero_grad()
                 optimizer_roi.zero_grad() 
                 optimizer_fusion.zero_grad() 
-                #image-level
                 var_image = torch.autograd.Variable(image).cuda()
                 var_label = torch.autograd.Variable(label).cuda()
-                conv_fea_img, fc_fea_img, out_img = model_img(var_image)#forward
+                #image-level
+                fc_fea_img, out_img = model_img(var_image)#forward
                 loss_img = bce_criterion(out_img, var_label)
+                loss_img.backward()
+                optimizer_img.step()
                 #ROI-level
-                cls_weights = list(model_img.parameters())
-                weight_softmax = np.squeeze(cls_weights[-5].data.cpu().numpy())
-                roi = roigen.ROIGeneration(image, conv_fea_img, weight_softmax, label.numpy())
-                var_roi = torch.autograd.Variable(roi).cuda()
-                _, fc_fea_roi, out_roi = model_roi(var_roi)
+                fc_fea_roi, out_roi = model_roi(var_image)
                 loss_roi = bce_criterion(out_roi, var_label) 
+                loss_roi.backward()
+                optimizer_roi.step()
                 #Fusion
                 fc_fea_fusion = torch.cat((fc_fea_img,fc_fea_roi), 1)
                 var_fusion = torch.autograd.Variable(fc_fea_fusion).cuda()
                 out_fusion = model_fusion(var_fusion)
                 loss_fusion = bce_criterion(out_fusion, var_label) 
-                #backward and update parameters 
-                loss_tensor = 0.7*loss_img + 0.2*loss_roi + 0.1*loss_fusion
-                loss_tensor.backward() 
-                optimizer_img.step() 
-                optimizer_roi.step()
+                loss_fusion.backward()
                 optimizer_fusion.step() 
+                #backward and update parameters 
+                loss_tensor = loss_img + loss_roi + loss_fusion 
                 train_loss.append(loss_tensor.item())
                 #print([x.grad for x in optimizer.param_groups[0]['params']])
                 sys.stdout.write('\r Epoch: {} / Step: {} : image loss ={}, roi loss ={}, fusion loss = {}, train loss = {}'
@@ -127,18 +123,14 @@ def Train():
         with torch.autograd.no_grad():
             for batch_idx, (image, label) in enumerate(dataloader_val):
                 gt = torch.cat((gt, label.cuda()), 0)
-                #image-level
                 var_image = torch.autograd.Variable(image).cuda()
                 var_label = torch.autograd.Variable(label).cuda()
-                conv_fea_img, fc_fea_img, out_img = model_img(var_image)#forward
+                #image-level
+                fc_fea_img, out_img = model_img(var_image)#forward
                 loss_img = bce_criterion(out_img, var_label) 
                 pred_img = torch.cat((pred_img, out_img.data), 0)
                 #ROI-level
-                cls_weights = list(model_img.parameters())
-                weight_softmax = np.squeeze(cls_weights[-5].data.cpu().numpy())
-                roi = roigen.ROIGeneration(image, conv_fea_img, weight_softmax, label.numpy())
-                var_roi = torch.autograd.Variable(roi).cuda()
-                _, fc_fea_roi, out_roi = model_roi(var_roi)
+                fc_fea_roi, out_roi = model_roi(var_image)
                 loss_roi = bce_criterion(out_roi, var_label) 
                 pred_roi = torch.cat((pred_roi, out_roi.data), 0)
                 #Fusion
@@ -148,7 +140,7 @@ def Train():
                 loss_fusion = bce_criterion(out_fusion, var_label) 
                 pred_fusion = torch.cat((pred_fusion, out_fusion.data), 0)
                 #loss
-                loss_tensor = 0.7*loss_img + 0.2*loss_roi + 0.1*loss_fusion
+                loss_tensor = loss_img + loss_roi + loss_fusion
                 val_loss.append(loss_tensor.item())
                 sys.stdout.write('\r Epoch: {} / Step: {} : image loss ={}, roi loss ={}, fusion loss = {}, train loss = {}'
                                 .format(epoch+1, batch_idx+1, float('%0.6f'%loss_img.item()), float('%0.6f'%loss_roi.item()),
@@ -219,17 +211,12 @@ def Test():
     with torch.autograd.no_grad():
         for batch_idx, (image, label) in enumerate(dataloader_test):
             gt = torch.cat((gt, label.cuda()), 0)
-            #image-level
             var_image = torch.autograd.Variable(image).cuda()
-            var_label = torch.autograd.Variable(label).cuda()
-            conv_fea_img, fc_fea_img, out_img = model_img(var_image)#forward
+            #image-level
+            fc_fea_img, out_img = model_img(var_image)#forward
             pred_img = torch.cat((pred_img, out_img.data), 0)
             #ROI-level
-            cls_weights = list(model_img.parameters())
-            weight_softmax = np.squeeze(cls_weights[-5].data.cpu().numpy())
-            roi = roigen.ROIGeneration(image, conv_fea_img, weight_softmax, label.numpy())
-            var_roi = torch.autograd.Variable(roi).cuda()
-            _, fc_fea_roi, out_roi = model_roi(var_roi)
+            fc_fea_roi, out_roi = model_roi(var_image)
             pred_roi = torch.cat((pred_roi, out_roi.data), 0)
             #Fusion
             fc_fea_fusion = torch.cat((fc_fea_img,fc_fea_roi), 1)
@@ -264,7 +251,7 @@ def Test():
 
 
 def main():
-    #Train() #for training
+    Train() #for training
     Test() #for test
 
 if __name__ == '__main__':
