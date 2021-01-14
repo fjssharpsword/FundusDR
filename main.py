@@ -172,13 +172,13 @@ def Test():
     print('********************load model********************')
     # initialize and load the model
     if args.model == 'CXRNet':
-        model_img = CXRClassifier(num_classes=N_CLASSES, is_pre_trained=True, is_roi=False).cuda()
+        model_img = ImageClassifier(num_classes=N_CLASSES, is_pre_trained=True).cuda()
         CKPT_PATH = config['CKPT_PATH']+ args.model +'/img_model.pkl'
         checkpoint = torch.load(CKPT_PATH)
         model_img.load_state_dict(checkpoint) #strict=False
         print("=> loaded Image model checkpoint: "+CKPT_PATH)
 
-        model_roi = CXRClassifier(num_classes=N_CLASSES, is_pre_trained=True, is_roi=True).cuda()
+        model_roi = RegionClassifier(num_classes=N_CLASSES, is_pre_trained=True).cuda()
         CKPT_PATH = config['CKPT_PATH']+ args.model +'/roi_model.pkl'
         checkpoint = torch.load(CKPT_PATH)
         model_roi.load_state_dict(checkpoint) #strict=False
@@ -189,9 +189,6 @@ def Test():
         checkpoint = torch.load(CKPT_PATH)
         model_fusion.load_state_dict(checkpoint) #strict=False
         print("=> loaded Fusion model checkpoint: "+CKPT_PATH)
-
-        roigen = ROIGenerator() #region generator
-
     else: 
         print('No required model')
         return #over
