@@ -4,9 +4,9 @@ config = {
             'CKPT_PATH': '/data/pycode/FundusDR/models/',
             'log_path':  '/data/pycode/FundusDR/log/',
             'img_path': '/data/pycode/FundusDR/imgs/',
-            'CUDA_VISIBLE_DEVICES': "1",
+            'CUDA_VISIBLE_DEVICES': "2",
             'MAX_EPOCHS': 20,
-            'BATCH_SIZE': 64, #512
+            'BATCH_SIZE': 32, #512
             'TRAN_SIZE': 256,
             'TRAN_CROP': 224,
             'sizeX': 20, 

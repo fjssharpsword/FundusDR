@@ -1,0 +1,24 @@
+ Eopch:     1 validation loss = 0.3693, classification loss = 0.2993,  regression loss =0.0700
+ Eopch:     2 validation loss = 0.3667, classification loss = 0.2999,  regression loss =0.0668
+ Eopch:     3 validation loss = 0.3681, classification loss = 0.3021,  regression loss =0.0660
+ Eopch:     1 validation loss = 0.3767, classification loss = 0.3065,  regression loss =0.0701, Average AUROC =0.5431
+ Eopch:     2 validation loss = 0.3641, classification loss = 0.2974,  regression loss =0.0667, Average AUROC =0.5325
+ Eopch:     3 validation loss = 0.3643, classification loss = 0.2989,  regression loss =0.0654, Average AUROC =0.5569
+ Eopch:     4 validation loss = 0.3627, classification loss = 0.2977,  regression loss =0.0650, Average AUROC =0.5490
+ Eopch:     5 validation loss = 0.3613, classification loss = 0.2971,  regression loss =0.0642, Average AUROC =0.5399
+ Eopch:     6 validation loss = 0.3603, classification loss = 0.2960,  regression loss =0.0643, Average AUROC =0.5460
+ Eopch:     7 validation loss = 0.3627, classification loss = 0.2989,  regression loss =0.0638, Average AUROC =0.5546
+ Eopch:     8 validation loss = 0.3653, classification loss = 0.3017,  regression loss =0.0636, Average AUROC =0.5449
+ Eopch:     9 validation loss = 0.3607, classification loss = 0.2971,  regression loss =0.0636, Average AUROC =0.5507
+ Eopch:    10 validation loss = 0.3599, classification loss = 0.2966,  regression loss =0.0634, Average AUROC =0.5463
+ Eopch:    11 validation loss = 0.3594, classification loss = 0.2959,  regression loss =0.0635, Average AUROC =0.5579
+ Eopch:    12 validation loss = 0.3599, classification loss = 0.2967,  regression loss =0.0632, Average AUROC =0.5628
+ Eopch:    13 validation loss = 0.3609, classification loss = 0.2981,  regression loss =0.0629, Average AUROC =0.5676
+ Eopch:    14 validation loss = 0.3589, classification loss = 0.2955,  regression loss =0.0633, Average AUROC =0.5671
+ Eopch:    15 validation loss = 0.3599, classification loss = 0.2970,  regression loss =0.0629, Average AUROC =0.5712
+ Eopch:    16 validation loss = 0.3585, classification loss = 0.2954,  regression loss =0.0630, Average AUROC =0.5770
+ Eopch:    17 validation loss = 0.3582, classification loss = 0.2951,  regression loss =0.0630, Average AUROC =0.5712
+ Eopch:    18 validation loss = 0.3633, classification loss = 0.2995,  regression loss =0.0638, Average AUROC =0.5586
+ Eopch:    19 validation loss = 0.3585, classification loss = 0.2955,  regression loss =0.0630, Average AUROC =0.5785
+ Eopch:    20 validation loss = 0.3583, classification loss = 0.2951,  regression loss =0.0632, Average AUROC =0.5767
+ Eopch:     1 validation loss = 11.8009, classification loss = 0.2991,  similarity loss = 11.4377, regression loss =0.0641, Average AUROC =0.5544

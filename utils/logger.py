@@ -11,7 +11,7 @@ def get_logger(exp_dir):
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
 
-    logger = logging.getLogger('ChestXray_detection')
+    logger = logging.getLogger('DR Retrieval')
     logger.setLevel(logging.DEBUG)
     log_file = os.path.join(exp_dir, 'log.txt')
     hdlr = logging.FileHandler(log_file)
