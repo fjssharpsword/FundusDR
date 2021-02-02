@@ -52,13 +52,13 @@ class AENet(nn.Module):
         #common layer
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
-        self.msa = MultiScaleAttention()
+        #self.msa = MultiScaleAttention()
         self.gem = GeneralizedMeanPooling()
         self.classifer =  nn.Sequential(nn.Linear(1024, num_classes), nn.Sigmoid())
 
     def forward(self, x):
         ##Attention Layer##
-        x = self.msa(x)*x
+        #x = self.msa(x)*x
         ## encode ##
         # add hidden layers with relu activation function
         x = self.pool(self.relu(self.conv1(x)))

@@ -22,3 +22,22 @@
  Eopch:    19 validation loss = 0.3585, classification loss = 0.2955,  regression loss =0.0630, Average AUROC =0.5785
  Eopch:    20 validation loss = 0.3583, classification loss = 0.2951,  regression loss =0.0632, Average AUROC =0.5767
  Eopch:     1 validation loss = 11.8009, classification loss = 0.2991,  similarity loss = 11.4377, regression loss =0.0641, Average AUROC =0.5544
+ Eopch:     2 validation loss = 11.7615, classification loss = 0.2980,  similarity loss = 11.4004, regression loss =0.0631, Average AUROC =0.5794
+ Eopch:     3 validation loss = 11.7454, classification loss = 0.2967,  similarity loss = 11.3849, regression loss =0.0638, Average AUROC =0.5965
+ Eopch:     4 validation loss = 11.7252, classification loss = 0.2920,  similarity loss = 11.3693, regression loss =0.0639, Average AUROC =0.6169
+ Eopch:     5 validation loss = 11.7284, classification loss = 0.2947,  similarity loss = 11.3697, regression loss =0.0640, Average AUROC =0.6253
+ Eopch:     6 validation loss = 11.7272, classification loss = 0.2934,  similarity loss = 11.3701, regression loss =0.0637, Average AUROC =0.6309
+ Eopch:     7 validation loss = 11.7233, classification loss = 0.2916,  similarity loss = 11.3669, regression loss =0.0648, Average AUROC =0.6337
+ Eopch:     8 validation loss = 11.7143, classification loss = 0.2901,  similarity loss = 11.3605, regression loss =0.0637, Average AUROC =0.6381
+ Eopch:     9 validation loss = 11.7186, classification loss = 0.2921,  similarity loss = 11.3624, regression loss =0.0641, Average AUROC =0.6164
+ Eopch:    10 validation loss = 11.7233, classification loss = 0.2944,  similarity loss = 11.3652, regression loss =0.0637, Average AUROC =0.6269
+ Eopch:    11 validation loss = 11.7085, classification loss = 0.2894,  similarity loss = 11.3549, regression loss =0.0643, Average AUROC =0.6533
+ Eopch:    12 validation loss = 11.7114, classification loss = 0.2899,  similarity loss = 11.3581, regression loss =0.0635, Average AUROC =0.6397
+ Eopch:    13 validation loss = 11.7090, classification loss = 0.2891,  similarity loss = 11.3559, regression loss =0.0640, Average AUROC =0.6484
+ Eopch:    14 validation loss = 11.7084, classification loss = 0.2896,  similarity loss = 11.3543, regression loss =0.0645, Average AUROC =0.6475
+ Eopch:    15 validation loss = 11.7131, classification loss = 0.2897,  similarity loss = 11.3594, regression loss =0.0640, Average AUROC =0.6474
+ Eopch:    16 validation loss = 11.7096, classification loss = 0.2916,  similarity loss = 11.3544, regression loss =0.0636, Average AUROC =0.6451
+ Eopch:    17 validation loss = 11.7083, classification loss = 0.2913,  similarity loss = 11.3535, regression loss =0.0636, Average AUROC =0.6402
+ Eopch:    18 validation loss = 11.7081, classification loss = 0.2931,  similarity loss = 11.3513, regression loss =0.0636, Average AUROC =0.6542
+ Eopch:    19 validation loss = 11.7022, classification loss = 0.2876,  similarity loss = 11.3507, regression loss =0.0639, Average AUROC =0.6529
+ Eopch:    20 validation loss = 11.7022, classification loss = 0.2885,  similarity loss = 11.3503, regression loss =0.0634, Average AUROC =0.6572
