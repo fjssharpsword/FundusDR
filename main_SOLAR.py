@@ -1,9 +1,8 @@
 # encoding: utf-8
 """
 Training implementation
-Author: Jason.Fang
-Update: Ming Zeng
-Update time: 01/02/2021
+Author: Ming Zeng
+Update time: 08/03/2021
 """
 import re
 import sys
@@ -25,9 +24,7 @@ import heapq
 from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR_SOLAR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
-from utils.Evaluation import compute_AUCs, compute_ROCCurve, compute_IoUs
 from sota.solar_global.networks.imageretrievalnet import init_network,SOLAR_Global_Retrieval
-from sota.solar_global.networks.networks import ResNetSOAs
 from sota.solar_global.layers.loss import TripletLoss,SOSLoss
 
 #command parameters
@@ -36,8 +33,9 @@ parser.add_argument('--model', type=str, default='SOLAR', help='SOLAR')
 args = parser.parse_args()
 
 #config
-os.environ['CUDA_VISIBLE_DEVICES'] = "7"
+os.environ['CUDA_VISIBLE_DEVICES'] = config['CUDA_VISIBLE_DEVICES']
 logger = get_logger(config['log_path'])
+result_file = '/data/home/fangjiansheng/code/DR/Fundus2.0/result_SOLAR.txt'
 
 def Train():
     print('********************load data********************')
@@ -63,7 +61,7 @@ def Train():
     print('********************load model succeed!********************')
 
     print('********************begin training!********************')
-    AUROC_best = 0.50
+    loss_min = float('inf')
     for epoch in range(config['MAX_EPOCHS']):
         since = time.time()
         print('Epoch {}/{}'.format(epoch+1 , config['MAX_EPOCHS']))
@@ -94,6 +92,7 @@ def Train():
                 loss_second = second_loss.forward(var_feat_anchor, var_feat_pos, var_feat_neg)
                 # loss_second.backward()
                 loss = loss_tri + 5 * loss_second
+
                 loss.backward()
                 optimizer.step()
                 loss_tensor = loss
@@ -146,16 +145,17 @@ def Train():
                 sys.stdout.write('\r Epoch: {} / Step: {} : validation loss = {}'\
                                 .format(epoch+1, batch_idx+1, float('%0.6f'%loss_tensor.item()) ))
                 sys.stdout.flush()
-        #evaluation
-        AUROC_avg = np.array(compute_AUCs(gt, pred)).mean()
-        logger.info("\r Eopch: %5d validation loss = %.4f, Average AUROC =%.4f"
-                     % (epoch + 1, np.mean(val_loss), AUROC_avg))
-        #save checkpoint
-        if AUROC_best < AUROC_avg:
-            AUROC_best = AUROC_avg
-            #torch.save(model.module.state_dict(), CKPT_PATH)#Saving torch.nn.DataParallel Models
-            torch.save(model.state_dict(), config['CKPT_PATH']+ args.model +'/best_model.pkl')
-            print(' Epoch: {} model has been already save!'.format(epoch+1))
+
+        # evaluation
+        loss_avg = np.mean(val_loss)
+        logger.info("\r Eopch: %5d validation loss = %.4f"
+                    % (epoch + 1, loss_avg))
+
+        # save checkpoint
+        if loss_min > loss_avg:
+            loss_min = loss_avg
+            torch.save(model.state_dict(), config['CKPT_PATH'] + args.model + '/best_model.pkl')
+            print(' Epoch: {} model has been already save!'.format(epoch + 1))
 
         time_elapsed = time.time() - since
         print('Training epoch: {} completed in {:.0f}m {:.0f}s'.format(epoch+1, time_elapsed // 60 , time_elapsed % 60))
@@ -207,17 +207,13 @@ def Test():
             sys.stdout.write('\r test set process: = {}'.format(batch_idx+1))
             sys.stdout.flush()
 
-    print('********************Classification Performance!********************')
-    AUROC_class = compute_AUCs(te_label, te_pred)
-    AUROC_avg = np.array(AUROC_class).mean()
-    for i in range(N_CLASSES):
-        print('The AUROC of {} is {:.4f}'.format(CLASS_NAMES[i], AUROC_class[i]))
-    print('The average AUROC is {:.4f}'.format(AUROC_avg))
 
     print('********************Retrieval Performance!********************')
     sim_mat = cosine_similarity(te_feat.cpu().numpy(), tr_feat.cpu().numpy())
     te_label = te_label.cpu().numpy()
     tr_label = tr_label.cpu().numpy()
+    f = open(result_file, 'a')
+
     for topk in [5,10,20,50]:
         mHRs = {0:[], 1:[], 2:[], 3:[], 4:[]} #Hit Ratio
         mHRs_avg = []
@@ -255,7 +251,19 @@ def Test():
         for i in range(N_CLASSES):
             print('The mAP of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
         print("Average mAP@{}={:.4f}".format(topk, np.mean(mAPs_avg)))
+
         #NDCG: normalized discounted cumulative gain
+        # Hit ratio
+        for i in range(N_CLASSES):
+            f.write('The mHR of {} is {:.4f}\n'.format(CLASS_NAMES[i], np.mean(mHRs[i])))
+        f.write("Average mHR@{}={:.4f}\n".format(topk, np.mean(mHRs_avg)))
+        # average precision
+        for i in range(N_CLASSES):
+            f.write('The mAP of {} is {:.4f}\n'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
+        f.write("Average mAP@{}={:.4f}\n".format(topk, np.mean(mAPs_avg)))
+
+    f.close()
+
 
 
 def main():

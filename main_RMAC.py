@@ -9,25 +9,27 @@ import time
 import argparse
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.optim import lr_scheduler
 import torch.optim as optim
 from sklearn.metrics.pairwise import cosine_similarity
 import heapq
+# self-defined
 from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
 from sota.APLoss_dirtorch.init_network import net
-from sota.APLoss_dirtorch.loss import APLoss
 
 # command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')
-parser.add_argument('--model', type=str, default='APLoss', help='APLoss')
+parser.add_argument('--model', type=str, default='RMAC', help='RMAC')
 args = parser.parse_args()
 
 # config
 os.environ['CUDA_VISIBLE_DEVICES'] = config['CUDA_VISIBLE_DEVICES']
 logger = get_logger(config['log_path'])
+result_file = '/data/home/fangjiansheng/code/DR/Fundus2.0/result_RMAC.txt'
 
 
 def Train():
@@ -46,7 +48,7 @@ def Train():
 
     torch.backends.cudnn.benchmark = True  # improve train speed slightly
 
-    criterion = APLoss().cuda()
+    criterion = nn.BCELoss().cuda()
     # criterion = nn.BCELoss()
 
     print('********************load model succeed!********************')
@@ -112,8 +114,7 @@ def Train():
         # save checkpoint
         if loss_min > loss_avg:
             loss_min = loss_avg
-            # torch.save(model.module.state_dict(), CKPT_PATH)#Saving torch.nn.DataParallel Models
-            # torch.save(model.state_dict(), config['CKPT_PATH']+ args.model +'/best_model.pkl')
+            torch.save(model.state_dict(), config['CKPT_PATH'] + args.model + '/best_model.pkl')
             print(' Epoch: {} model has been already save!'.format(epoch + 1))
 
         time_elapsed = time.time() - since
@@ -168,7 +169,7 @@ def Test():
     sim_mat = cosine_similarity(te_feat.cpu().numpy(), tr_feat.cpu().numpy())
     te_label = te_label.cpu().numpy()
     tr_label = tr_label.cpu().numpy()
-    f = open('/data/home/fangjiansheng/code/DR/Fundus2.0/result_APLoss.txt', 'a')
+    f = open(result_file, 'a')
 
     for topk in [5, 10, 20, 50]:
         mHRs = {0: [], 1: [], 2: [], 3: [], 4: []}  # Hit Ratio
