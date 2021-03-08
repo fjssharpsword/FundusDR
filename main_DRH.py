@@ -14,20 +14,21 @@ from torch.optim import lr_scheduler
 import torch.optim as optim
 from sklearn.metrics.pairwise import cosine_similarity
 import heapq
+# self-defined
 from config import *
 from utils.logger import get_logger
-from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
-from sota.APLoss_dirtorch.init_network import net
-from sota.APLoss_dirtorch.loss import APLoss
+from datasets.KaggleDR_SOLAR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
+from sota.DRH import DRH, HashLossFunc
 
 # command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')
-parser.add_argument('--model', type=str, default='APLoss', help='APLoss')
+parser.add_argument('--model', type=str, default='DRH', help='DRH')
 args = parser.parse_args()
 
 # config
 os.environ['CUDA_VISIBLE_DEVICES'] = config['CUDA_VISIBLE_DEVICES']
 logger = get_logger(config['log_path'])
+result_file = '/data/home/fangjiansheng/code/DR/Fundus2.0/result_DRH.txt'
 
 
 def Train():
@@ -38,16 +39,16 @@ def Train():
 
     print('********************load model********************')
     # initialize and load the model
-    model = net().cuda()
-    # model = AENet(num_classes=N_CLASSES).cuda()  # initialize model
+    model = DRH(code_size=64).cuda()  # initialize model
+
     # model_img = nn.DataParallel(model_img).cuda()  # make model available multi GPU cores training
     optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
     lr_scheduler_model = lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
 
-    torch.backends.cudnn.benchmark = True  # improve train speed slightly
+    # torch.backends.cudnn.benchmark = False  # improve train speed slightly
+    torch.backends.cudnn.enabled = False
 
-    criterion = APLoss().cuda()
-    # criterion = nn.BCELoss()
+    criterion = HashLossFunc().cuda()
 
     print('********************load model succeed!********************')
 
@@ -58,46 +59,71 @@ def Train():
         print('Epoch {}/{}'.format(epoch + 1, config['MAX_EPOCHS']))
         print('-' * 10)
         model.train()  # set model to training mode
+        # cls_loss, cir_loss, reg_loss, train_loss = [], [], [], []
+
         train_loss = []
-        with torch.autograd.set_detect_anomaly(True):
-            with torch.autograd.enable_grad():
-                for batch_idx, (image, label) in enumerate(dataloader_train):
-                    optimizer.zero_grad()
-                    # forward
-                    var_image = torch.autograd.Variable(image).cuda()
-                    var_label = torch.autograd.Variable(label).cuda()
-                    var_feat, var_output = model(var_image)
-                    # backward and update parameters
-                    loss = criterion.forward(var_output, var_label)
-                    # torch.autograd.set_detect_anomaly(True)
-                    loss.backward()
+        with torch.autograd.enable_grad():
+            for batch_idx, (image, label) in enumerate(dataloader_train):
+                optimizer.zero_grad()
+                # forward
+                var_image_anchor = torch.autograd.Variable(image[0]).cuda()
+                # var_label_anchor = torch.autograd.Variable(label[:,0]).cuda() # var_label = [32,5]
+                var_feat_anchor, var_output = model(var_image_anchor)  # var_feat = [32,2048]
 
-                    optimizer.step()
+                var_image_pos = torch.autograd.Variable(image[1]).cuda()
+                # var_label_pos = torch.autograd.Variable(label[:,1]).cuda()  # var_label = [32,5]
+                var_feat_pos, _ = model(var_image_pos)  # var_feat = [32,2048]
 
-                    train_loss.append(loss.item())
+                var_image_neg = torch.autograd.Variable(image[2]).cuda()
+                # var_label_neg = torch.autograd.Variable(label[:,2]).cuda()  # var_label = [32,5]
+                var_feat_neg, _ = model(var_image_neg)  # var_feat = [32,2048]
 
-                    # print([x.grad for x in optimizer.param_groups[0]['params']])
-                    sys.stdout.write('\r Epoch: {} / Step: {} : loss ={}' \
-                                     .format(epoch + 1, batch_idx + 1, float('%0.6f' % loss.item())))
-                    sys.stdout.flush()
+                loss = criterion.forward(var_feat_anchor, var_feat_pos, 0) + criterion.forward(var_feat_anchor,
+                                                                                               var_feat_neg, 1)
+
+                loss.backward()
+                optimizer.step()
+                loss_tensor = loss
+                train_loss.append(loss_tensor.item())
+                # print([x.grad for x in optimizer.param_groups[0]['params']])
+                sys.stdout.write('\r Epoch: {} / Step: {} : train loss = {}' \
+                                 .format(epoch + 1, batch_idx + 1, float('%0.6f' % loss_tensor.item())))
+                sys.stdout.flush()
+
         lr_scheduler_model.step()  # about lr and gamma
         print("\r Eopch: %5d train loss = %.6f" \
               % (epoch + 1, np.mean(train_loss)))
 
         model.eval()  # turn to test mode
         val_loss = []
+
         gt = torch.FloatTensor().cuda()
         pred = torch.FloatTensor().cuda()
+
         with torch.autograd.no_grad():
             for batch_idx, (image, label) in enumerate(dataloader_val):
-                gt = torch.cat((gt, label.cuda()), 0)
+                gt = torch.cat((gt, label[:, 0].cuda()), 0)
                 # forward
-                var_image = torch.autograd.Variable(image).cuda()
-                var_label = torch.autograd.Variable(label).cuda()
-                var_feat, var_output = model(var_image)
+                var_image_anchor = torch.autograd.Variable(image[0]).cuda()
+                # var_label_anchor = torch.autograd.Variable(label[:,0]).cuda() # var_label = [32,5]
+                var_feat_anchor, var_output = model(var_image_anchor)  # var_feat = [32,2048]
+
+                var_image_pos = torch.autograd.Variable(image[1]).cuda()
+                # var_label_pos = torch.autograd.Variable(label[:,1]).cuda()  # var_label = [32,5]
+                var_feat_pos, _ = model(var_image_pos)  # var_feat = [32,2048]
+
+                var_image_neg = torch.autograd.Variable(image[2]).cuda()
+                # var_label_neg = torch.autograd.Variable(label[:,2]).cuda()  # var_label = [32,5]
+                var_feat_neg, _ = model(var_image_neg)  # var_feat = [32,2048]
+
                 pred = torch.cat((pred, var_output.data), 0)
+
                 # backward and update parameters
-                loss_tensor = criterion(var_output, var_label)
+
+                loss = criterion.forward(var_feat_anchor, var_feat_pos, 0) + criterion.forward(var_feat_anchor,
+                                                                                               var_feat_neg, 1)
+
+                loss_tensor = loss
 
                 val_loss.append(loss_tensor.item())
 
@@ -112,8 +138,7 @@ def Train():
         # save checkpoint
         if loss_min > loss_avg:
             loss_min = loss_avg
-            # torch.save(model.module.state_dict(), CKPT_PATH)#Saving torch.nn.DataParallel Models
-            # torch.save(model.state_dict(), config['CKPT_PATH']+ args.model +'/best_model.pkl')
+            torch.save(model.state_dict(), config['CKPT_PATH'] + args.model + '/best_model.pkl')
             print(' Epoch: {} model has been already save!'.format(epoch + 1))
 
         time_elapsed = time.time() - since
@@ -123,19 +148,21 @@ def Train():
 
 def Test():
     print('********************load data********************')
-    dataloader_train = get_train_dataloader(batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=8)
-    dataloader_test = get_test_dataloader(batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=8)
+    dataloader_train = get_train_dataloader(batch_size=16, shuffle=False, num_workers=8)
+    dataloader_test = get_test_dataloader(batch_size=16, shuffle=False, num_workers=8)
     print('********************load data succeed!********************')
 
     print('********************load model********************')
-    # initialize and load the model
-    model = net().cuda()
+
+    model = DRH(code_size=64).cuda()  # initialize model
+
     CKPT_PATH = config['CKPT_PATH'] + args.model + '/best_model.pkl'
     checkpoint = torch.load(CKPT_PATH)
     model.load_state_dict(checkpoint)  # strict=False
     print("=> loaded model checkpoint: " + CKPT_PATH)
 
-    torch.backends.cudnn.benchmark = True  # improve train speed slightly
+    # torch.backends.cudnn.benchmark = True  # improve train speed slightly
+    torch.backends.cudnn.enabled = False
     model.eval()  # turn to test mode
     print('******************** load model succeed!********************')
 
@@ -144,8 +171,8 @@ def Test():
     tr_feat = torch.FloatTensor().cuda()
     with torch.autograd.no_grad():
         for batch_idx, (image, label) in enumerate(dataloader_train):
-            tr_label = torch.cat((tr_label, label.cuda()), 0)
-            var_image = torch.autograd.Variable(image).cuda()
+            tr_label = torch.cat((tr_label, label[:, 0].cuda()), 0)
+            var_image = torch.autograd.Variable(image[0]).cuda()
             var_feat, _ = model(var_image)
             tr_feat = torch.cat((tr_feat, var_feat.data), 0)
             sys.stdout.write('\r train set process: = {}'.format(batch_idx + 1))
@@ -156,8 +183,8 @@ def Test():
     te_pred = torch.FloatTensor().cuda()
     with torch.autograd.no_grad():
         for batch_idx, (image, label) in enumerate(dataloader_test):
-            te_label = torch.cat((te_label, label.cuda()), 0)
-            var_image = torch.autograd.Variable(image).cuda()
+            te_label = torch.cat((te_label, label[:, 0].cuda()), 0)
+            var_image = torch.autograd.Variable(image[0]).cuda()
             var_feat, var_output = model(var_image)
             te_feat = torch.cat((te_feat, var_feat.data), 0)
             te_pred = torch.cat((te_pred, var_output.data), 0)
@@ -168,7 +195,7 @@ def Test():
     sim_mat = cosine_similarity(te_feat.cpu().numpy(), tr_feat.cpu().numpy())
     te_label = te_label.cpu().numpy()
     tr_label = tr_label.cpu().numpy()
-    f = open('/data/home/fangjiansheng/code/DR/Fundus2.0/result_APLoss.txt', 'a')
+    f = open(result_file, 'a')
 
     for topk in [5, 10, 20, 50]:
         mHRs = {0: [], 1: [], 2: [], 3: [], 4: []}  # Hit Ratio
@@ -207,17 +234,16 @@ def Test():
         for i in range(N_CLASSES):
             print('The mAP of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
         print("Average mAP@{}={:.4f}".format(topk, np.mean(mAPs_avg)))
-        # NDCG: normalized discounted cumulative gain
 
+        # NDCG: normalized discounted cumulative gain
         # Hit ratio
         for i in range(N_CLASSES):
-            f.write('The mHR of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mHRs[i])))
-        f.write("Average mHR@{}={:.4f}".format(topk, np.mean(mHRs_avg)))
+            f.write('The mHR of {} is {:.4f}\n'.format(CLASS_NAMES[i], np.mean(mHRs[i])))
+        f.write("Average mHR@{}={:.4f}\n".format(topk, np.mean(mHRs_avg)))
         # average precision
         for i in range(N_CLASSES):
-            f.write('The mAP of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
-        f.write("Average mAP@{}={:.4f}".format(topk, np.mean(mAPs_avg)))
-        # NDCG: normalized discounted cumulative gain
+            f.write('The mAP of {} is {:.4f}\n'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
+        f.write("Average mAP@{}={:.4f}\n".format(topk, np.mean(mAPs_avg)))
 
     f.close()
 

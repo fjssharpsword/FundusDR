@@ -7,11 +7,11 @@ import torch.utils.model_zoo as model_zoo
 
 import torchvision
 
-from solar_global.layers.pooling import MAC, SPoC, GeM, GeMmp, RMAC, Rpool
-from solar_global.layers.normalization import L2N, PowerLaw
-from solar_global.datasets.genericdataset import ImagesFromList
-from solar_global.utils.general import get_data_root
-from solar_global.networks.networks import ResNetSOAs
+from sota.solar_global.layers.pooling import MAC, SPoC, GeM, GeMmp, RMAC, Rpool
+from sota.solar_global.layers.normalization import L2N, PowerLaw
+from sota.solar_global.datasets.genericdataset import ImagesFromList
+from sota.solar_global.utils.general import get_data_root
+from sota.solar_global.networks.networks import ResNetSOAs
 
 PRETRAINED = {
     'rSfM120k-tl-resnet50-gem-w': 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/retrieval-SfM-120k/rSfM120k-tl-resnet50-gem-w-97bf910.pth',
