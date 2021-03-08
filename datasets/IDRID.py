@@ -19,8 +19,9 @@ Data Descriptor: http://www.mdpi.com/2306-5729/3/3/25
 First Results and Analysis: https://doi.org/10.1016/j.media.2019.101561
 A. Localization: center pixel-locations of optic disc and fovea center for all 516 images;
 B. Disease Grading: 516 images, 413(80%)images for training, 103(20%) images for test.
-1) DR (diabetic retinopathy) grading:0(no apparent DR) to 4(severe DR).
-2) Risk of DME (diabetic macular edema): 0(no DME) to 2(severe DME).
+1) DR (diabetic retinopathy) grading: 0-no apparent retinopathy, 1-mild NPDR, 2-moderate NPDR, 3-Severe NPDR, 4-PDR
+2) Risk of DME (diabetic macular edema): 0-no apparent EX(s), 1-Presence of EX(s) outside the radius of one disc diameter form the macula center,
+                                        2-Presence of EX(s) within the radius of one disc diameter form the macula center.
 C. Segmentation: 
 1) 81 DR images, 54 for training and 27 for test.
 2) types: optic disc(OD), microaneurysms(MA), soft exudates(SE), hard exudates(EX), hemorrhages(HE).

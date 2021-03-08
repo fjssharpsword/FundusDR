@@ -25,9 +25,8 @@ from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
 from utils.Evaluation import compute_AUCs, compute_ROCCurve, compute_IoUs
-from nets.AENet import AENet, CircleLoss
-from APLoss_dirtorch.init_network import net
-from APLoss_dirtorch.loss import APLoss
+from sota.APLoss_dirtorch.init_network import net
+from sota.APLoss_dirtorch.loss import APLoss
 
 #command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')

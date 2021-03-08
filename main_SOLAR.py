@@ -26,14 +26,13 @@ from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR_SOLAR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
 from utils.Evaluation import compute_AUCs, compute_ROCCurve, compute_IoUs
-from nets.AENet import AENet, CircleLoss
-from solar_global.networks.imageretrievalnet import init_network,SOLAR_Global_Retrieval
-from solar_global.networks.networks import ResNetSOAs
-from solar_global.layers.loss import TripletLoss,SOSLoss
+from sota.solar_global.networks.imageretrievalnet import init_network,SOLAR_Global_Retrieval
+from sota.solar_global.networks.networks import ResNetSOAs
+from sota.solar_global.layers.loss import TripletLoss,SOSLoss
 
 #command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')
-parser.add_argument('--model', type=str, default='AENet', help='SOLAR')
+parser.add_argument('--model', type=str, default='SOLAR', help='SOLAR')
 args = parser.parse_args()
 
 #config
