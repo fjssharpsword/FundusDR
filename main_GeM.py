@@ -18,8 +18,8 @@ import heapq
 from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR_SOLAR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
-from sota.solar_global.networks.imageretrievalnet import init_network, SOLAR_Global_Retrieval
 from sota.solar_global.layers.loss import TripletLoss, SOSLoss
+from sota.GeM.net import Net
 
 # command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')
@@ -27,7 +27,7 @@ parser.add_argument('--model', type=str, default='GeM', help='GeM')
 args = parser.parse_args()
 
 # config
-os.environ['CUDA_VISIBLE_DEVICES'] = config['CUDA_VISIBLE_DEVICES']
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 logger = get_logger(config['log_path'])
 result_file = '/data/home/fangjiansheng/code/DR/Fundus2.0/result_GeM.txt'
 
@@ -40,12 +40,8 @@ def Train():
 
     print('********************load model********************')
     # initialize and load the model
-    params = {}
-    params['regional'] = False
-    params['whitening'] = False
-    params['soa'] = False
 
-    model = init_network(params).cuda()  # initialize model
+    model = Net().cuda()  # initialize model
 
     # model_img = nn.DataParallel(model_img).cuda()  # make model available multi GPU cores training
     optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
@@ -85,13 +81,10 @@ def Train():
                 # var_label_neg = torch.autograd.Variable(label[:,2]).cuda()  # var_label = [32,5]
                 var_feat_neg, _ = model(var_image_neg)  # var_feat = [32,2048]
 
-                loss_tri = triplet_loss.forward(var_feat_anchor, var_feat_pos, var_feat_neg)
-                # loss_tri.backward(retain_graph=True)
-                loss_second = second_loss.forward(var_feat_anchor, var_feat_pos, var_feat_neg)
-                # loss_second.backward()
-                loss = loss_tri + 5 * loss_second
+                loss = triplet_loss.forward(var_feat_anchor, var_feat_pos, var_feat_neg)
                 loss.backward()
                 optimizer.step()
+
                 loss_tensor = loss
                 train_loss.append(loss_tensor.item())
                 # print([x.grad for x in optimizer.param_groups[0]['params']])
@@ -128,18 +121,13 @@ def Train():
                 pred = torch.cat((pred, var_output.data), 0)
 
                 # backward and update parameters
-
-                loss_tri = triplet_loss.forward(var_feat_anchor, var_feat_pos, var_feat_neg)
-                loss_second = second_loss.forward(var_feat_anchor, var_feat_pos, var_feat_neg)
-                loss = loss_tri + 5 * loss_second
-
+                loss = triplet_loss.forward(var_feat_anchor, var_feat_pos, var_feat_neg)
                 loss_tensor = loss
-
                 val_loss.append(loss_tensor.item())
-
                 sys.stdout.write('\r Epoch: {} / Step: {} : validation loss = {}' \
                                  .format(epoch + 1, batch_idx + 1, float('%0.6f' % loss_tensor.item())))
                 sys.stdout.flush()
+
         # evaluation
         loss_avg = np.mean(val_loss)
         logger.info("\r Eopch: %5d validation loss = %.4f"
@@ -164,11 +152,7 @@ def Test():
 
     print('********************load model********************')
 
-    params = {}
-    params['regional'] = False
-    params['whitening'] = False
-    params['soa'] = False
-    model = init_network(params).cuda()  # initialize model
+    model = Net().cuda()
 
     CKPT_PATH = config['CKPT_PATH'] + args.model + '/best_model.pkl'
     checkpoint = torch.load(CKPT_PATH)
@@ -263,7 +247,7 @@ def Test():
 
 
 def main():
-    # Train() #for training
+    Train() #for training
     Test()  # for test
 
 
