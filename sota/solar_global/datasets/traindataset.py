@@ -13,9 +13,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
 
-from solar_global.datasets.datahelpers import default_loader, imresize, imcrop, cid2filename 
-from solar_global.datasets.genericdataset import ImagesFromList
-from solar_global.utils.general import get_data_root
+from sota.solar_global.datasets.datahelpers import default_loader, imresize, imcrop, cid2filename 
+from sota.solar_global.datasets.genericdataset import ImagesFromList
+from sota.solar_global.utils.general import get_data_root
 
 
 class TuplesBatchedDataset(data.Dataset):

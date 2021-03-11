@@ -13,7 +13,7 @@ from torch.optim import lr_scheduler
 import torch.utils.model_zoo as model_zoo
 from torchvision import transforms, models, datasets
 
-from solar_global.utils.general import get_data_root
+from sota.solar_global.utils.general import get_data_root
 
 # for some models, we have imported features (convolutions) from caffe because the image retrieval performance is higher for them
 FEATURES = {

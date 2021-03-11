@@ -6,7 +6,7 @@ config = {
             'img_path': '/data/pycode/FundusDR/imgs/',
             'CUDA_VISIBLE_DEVICES': "7",
             'MAX_EPOCHS': 20,
-            'BATCH_SIZE': 32, #512
+            'BATCH_SIZE': 32, 
             'TRAN_SIZE': 256,
             'TRAN_CROP': 224,
          } 

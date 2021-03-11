@@ -1,43 +1,240 @@
- Eopch:     1 validation loss = 0.3693, classification loss = 0.2993,  regression loss =0.0700
- Eopch:     2 validation loss = 0.3667, classification loss = 0.2999,  regression loss =0.0668
- Eopch:     3 validation loss = 0.3681, classification loss = 0.3021,  regression loss =0.0660
- Eopch:     1 validation loss = 0.3767, classification loss = 0.3065,  regression loss =0.0701, Average AUROC =0.5431
- Eopch:     2 validation loss = 0.3641, classification loss = 0.2974,  regression loss =0.0667, Average AUROC =0.5325
- Eopch:     3 validation loss = 0.3643, classification loss = 0.2989,  regression loss =0.0654, Average AUROC =0.5569
- Eopch:     4 validation loss = 0.3627, classification loss = 0.2977,  regression loss =0.0650, Average AUROC =0.5490
- Eopch:     5 validation loss = 0.3613, classification loss = 0.2971,  regression loss =0.0642, Average AUROC =0.5399
- Eopch:     6 validation loss = 0.3603, classification loss = 0.2960,  regression loss =0.0643, Average AUROC =0.5460
- Eopch:     7 validation loss = 0.3627, classification loss = 0.2989,  regression loss =0.0638, Average AUROC =0.5546
- Eopch:     8 validation loss = 0.3653, classification loss = 0.3017,  regression loss =0.0636, Average AUROC =0.5449
- Eopch:     9 validation loss = 0.3607, classification loss = 0.2971,  regression loss =0.0636, Average AUROC =0.5507
- Eopch:    10 validation loss = 0.3599, classification loss = 0.2966,  regression loss =0.0634, Average AUROC =0.5463
- Eopch:    11 validation loss = 0.3594, classification loss = 0.2959,  regression loss =0.0635, Average AUROC =0.5579
- Eopch:    12 validation loss = 0.3599, classification loss = 0.2967,  regression loss =0.0632, Average AUROC =0.5628
- Eopch:    13 validation loss = 0.3609, classification loss = 0.2981,  regression loss =0.0629, Average AUROC =0.5676
- Eopch:    14 validation loss = 0.3589, classification loss = 0.2955,  regression loss =0.0633, Average AUROC =0.5671
- Eopch:    15 validation loss = 0.3599, classification loss = 0.2970,  regression loss =0.0629, Average AUROC =0.5712
- Eopch:    16 validation loss = 0.3585, classification loss = 0.2954,  regression loss =0.0630, Average AUROC =0.5770
- Eopch:    17 validation loss = 0.3582, classification loss = 0.2951,  regression loss =0.0630, Average AUROC =0.5712
- Eopch:    18 validation loss = 0.3633, classification loss = 0.2995,  regression loss =0.0638, Average AUROC =0.5586
- Eopch:    19 validation loss = 0.3585, classification loss = 0.2955,  regression loss =0.0630, Average AUROC =0.5785
- Eopch:    20 validation loss = 0.3583, classification loss = 0.2951,  regression loss =0.0632, Average AUROC =0.5767
- Eopch:     1 validation loss = 11.8009, classification loss = 0.2991,  similarity loss = 11.4377, regression loss =0.0641, Average AUROC =0.5544
- Eopch:     2 validation loss = 11.7615, classification loss = 0.2980,  similarity loss = 11.4004, regression loss =0.0631, Average AUROC =0.5794
- Eopch:     3 validation loss = 11.7454, classification loss = 0.2967,  similarity loss = 11.3849, regression loss =0.0638, Average AUROC =0.5965
- Eopch:     4 validation loss = 11.7252, classification loss = 0.2920,  similarity loss = 11.3693, regression loss =0.0639, Average AUROC =0.6169
- Eopch:     5 validation loss = 11.7284, classification loss = 0.2947,  similarity loss = 11.3697, regression loss =0.0640, Average AUROC =0.6253
- Eopch:     6 validation loss = 11.7272, classification loss = 0.2934,  similarity loss = 11.3701, regression loss =0.0637, Average AUROC =0.6309
- Eopch:     7 validation loss = 11.7233, classification loss = 0.2916,  similarity loss = 11.3669, regression loss =0.0648, Average AUROC =0.6337
- Eopch:     8 validation loss = 11.7143, classification loss = 0.2901,  similarity loss = 11.3605, regression loss =0.0637, Average AUROC =0.6381
- Eopch:     9 validation loss = 11.7186, classification loss = 0.2921,  similarity loss = 11.3624, regression loss =0.0641, Average AUROC =0.6164
- Eopch:    10 validation loss = 11.7233, classification loss = 0.2944,  similarity loss = 11.3652, regression loss =0.0637, Average AUROC =0.6269
- Eopch:    11 validation loss = 11.7085, classification loss = 0.2894,  similarity loss = 11.3549, regression loss =0.0643, Average AUROC =0.6533
- Eopch:    12 validation loss = 11.7114, classification loss = 0.2899,  similarity loss = 11.3581, regression loss =0.0635, Average AUROC =0.6397
- Eopch:    13 validation loss = 11.7090, classification loss = 0.2891,  similarity loss = 11.3559, regression loss =0.0640, Average AUROC =0.6484
- Eopch:    14 validation loss = 11.7084, classification loss = 0.2896,  similarity loss = 11.3543, regression loss =0.0645, Average AUROC =0.6475
- Eopch:    15 validation loss = 11.7131, classification loss = 0.2897,  similarity loss = 11.3594, regression loss =0.0640, Average AUROC =0.6474
- Eopch:    16 validation loss = 11.7096, classification loss = 0.2916,  similarity loss = 11.3544, regression loss =0.0636, Average AUROC =0.6451
- Eopch:    17 validation loss = 11.7083, classification loss = 0.2913,  similarity loss = 11.3535, regression loss =0.0636, Average AUROC =0.6402
- Eopch:    18 validation loss = 11.7081, classification loss = 0.2931,  similarity loss = 11.3513, regression loss =0.0636, Average AUROC =0.6542
- Eopch:    19 validation loss = 11.7022, classification loss = 0.2876,  similarity loss = 11.3507, regression loss =0.0639, Average AUROC =0.6529
- Eopch:    20 validation loss = 11.7022, classification loss = 0.2885,  similarity loss = 11.3503, regression loss =0.0634, Average AUROC =0.6572
+SOLAR mHR of No DR is 0.8923
+SOLAR mHR of Mild DR is 0.0271
+SOLAR mHR of Moderate DR is 0.0646
+SOLAR mHR of Severe DR is 0.0066
+SOLAR mHR of Proliferative DR is 0.0015
+SOLAR Average mHR@5=0.6721
+SOLAR mAP of No DR is 0.9289
+SOLAR mAP of Mild DR is 0.4796
+SOLAR mAP of Moderate DR is 0.4755
+SOLAR mAP of Severe DR is 0.4028
+SOLAR mAP of Proliferative DR is 0.3333
+SOLAR Average mAP@5=0.9008
+SOLAR mHR of No DR is 0.9018
+SOLAR mHR of Mild DR is 0.0227
+SOLAR mHR of Moderate DR is 0.0609
+SOLAR mHR of Severe DR is 0.0038
+SOLAR mHR of Proliferative DR is 0.0023
+SOLAR Average mHR@10=0.6782
+SOLAR mAP of No DR is 0.9200
+SOLAR mAP of Mild DR is 0.3491
+SOLAR mAP of Moderate DR is 0.3576
+SOLAR mAP of Severe DR is 0.3690
+SOLAR mAP of Proliferative DR is 0.1898
+SOLAR Average mAP@10=0.8671
+SOLAR mHR of No DR is 0.9117
+SOLAR mHR of Mild DR is 0.0245
+SOLAR mHR of Moderate DR is 0.0524
+SOLAR mHR of Severe DR is 0.0047
+SOLAR mHR of Proliferative DR is 0.0015
+SOLAR Average mHR@20=0.6844
+SOLAR mAP of No DR is 0.9187
+SOLAR mAP of Mild DR is 0.2247
+SOLAR mAP of Moderate DR is 0.2804
+SOLAR mAP of Severe DR is 0.2023
+SOLAR mAP of Proliferative DR is 0.1571
+SOLAR Average mAP@20=0.8357
+SOLAR mHR of No DR is 0.8958
+SOLAR mHR of Mild DR is 0.0330
+SOLAR mHR of Moderate DR is 0.0597
+SOLAR mHR of Severe DR is 0.0081
+SOLAR mHR of Proliferative DR is 0.0052
+SOLAR Average mHR@50=0.6744
+SOLAR mAP of No DR is 0.9167
+SOLAR mAP of Mild DR is 0.1277
+SOLAR mAP of Moderate DR is 0.1924
+SOLAR mAP of Severe DR is 0.0789
+SOLAR mAP of Proliferative DR is 0.0591
+SOLAR Average mAP@50=0.7739
+SOLAR mHR of No DR is 0.8923
+SOLAR mHR of Mild DR is 0.0271
+SOLAR mHR of Moderate DR is 0.0646
+SOLAR mHR of Severe DR is 0.0066
+SOLAR mHR of Proliferative DR is 0.0015
+SOLAR Average mHR@5=0.6721
+SOLAR mAP of No DR is 0.8418
+SOLAR mAP of Mild DR is 0.0130
+SOLAR mAP of Moderate DR is 0.0320
+SOLAR mAP of Severe DR is 0.0027
+SOLAR mAP of Proliferative DR is 0.0005
+SOLAR Average mAP@5=0.6288
+SOLAR mHR of No DR is 0.9018
+SOLAR mHR of Mild DR is 0.0227
+SOLAR mHR of Moderate DR is 0.0609
+SOLAR mHR of Severe DR is 0.0038
+SOLAR mHR of Proliferative DR is 0.0023
+SOLAR Average mHR@10=0.6782
+SOLAR mAP of No DR is 0.8378
+SOLAR mAP of Mild DR is 0.0079
+SOLAR mAP of Moderate DR is 0.0222
+SOLAR mAP of Severe DR is 0.0014
+SOLAR mAP of Proliferative DR is 0.0004
+SOLAR Average mAP@10=0.6240
+SOLAR mHR of No DR is 0.9117
+SOLAR mHR of Mild DR is 0.0245
+SOLAR mHR of Moderate DR is 0.0524
+SOLAR mHR of Severe DR is 0.0047
+SOLAR mHR of Proliferative DR is 0.0015
+SOLAR Average mHR@20=0.6844
+SOLAR mAP of No DR is 0.8421
+SOLAR mAP of Mild DR is 0.0053
+SOLAR mAP of Moderate DR is 0.0143
+SOLAR mAP of Severe DR is 0.0009
+SOLAR mAP of Proliferative DR is 0.0002
+SOLAR Average mAP@20=0.6258
+SOLAR mHR of No DR is 0.8958
+SOLAR mHR of Mild DR is 0.0330
+SOLAR mHR of Moderate DR is 0.0597
+SOLAR mHR of Severe DR is 0.0081
+SOLAR mHR of Proliferative DR is 0.0052
+SOLAR Average mHR@50=0.6744
+SOLAR mAP of No DR is 0.8230
+SOLAR mAP of Mild DR is 0.0038
+SOLAR mAP of Moderate DR is 0.0102
+SOLAR mAP of Severe DR is 0.0006
+SOLAR mAP of Proliferative DR is 0.0003
+SOLAR Average mAP@50=0.6110
+The mHR of No DR is 0.8000
+The mHR of Mild DR is 0.0000
+The mHR of Moderate DR is 0.2000
+The mHR of Severe DR is 0.0000
+The mHR of Proliferative DR is 0.0000
+Average mHR@5=0.6216
+The mAP of No DR is 0.7600
+The mAP of Mild DR is 0.0000
+The mAP of Moderate DR is 0.0500
+The mAP of Severe DR is 0.0000
+The mAP of Proliferative DR is 0.0000
+Average mAP@5=0.5699
+The mHR of No DR is 0.7000
+The mHR of Mild DR is 0.1000
+The mHR of Moderate DR is 0.2000
+The mHR of Severe DR is 0.0000
+The mHR of Proliferative DR is 0.0000
+Average mHR@10=0.5544
+The mAP of No DR is 0.6000
+The mAP of Mild DR is 0.0125
+The mAP of Moderate DR is 0.0536
+The mAP of Severe DR is 0.0000
+The mAP of Proliferative DR is 0.0000
+Average mAP@10=0.4529
+The mHR of No DR is 0.7000
+The mHR of Mild DR is 0.1000
+The mHR of Moderate DR is 0.2000
+The mHR of Severe DR is 0.0000
+The mHR of Proliferative DR is 0.0000
+Average mHR@20=0.5544
+The mAP of No DR is 0.5470
+The mAP of Mild DR is 0.0121
+The mAP of Moderate DR is 0.0515
+The mAP of Severe DR is 0.0000
+The mAP of Proliferative DR is 0.0000
+Average mAP@20=0.4133
+The mHR of No DR is 0.7000
+The mHR of Mild DR is 0.1000
+The mHR of Moderate DR is 0.1600
+The mHR of Severe DR is 0.0400
+The mHR of Proliferative DR is 0.0000
+Average mHR@50=0.5495
+The mAP of No DR is 0.5187
+The mAP of Mild DR is 0.0124
+The mAP of Moderate DR is 0.0335
+The mAP of Severe DR is 0.0017
+The mAP of Proliferative DR is 0.0000
+Average mAP@50=0.3898
+The mHR of No DR is 0.7886
+The mHR of Mild DR is 0.0783
+The mHR of Moderate DR is 0.2522
+The mHR of Severe DR is 0.1473
+The mHR of Proliferative DR is 0.1145
+Average mHR@5=0.6321
+The mAP of No DR is 0.7037
+The mAP of Mild DR is 0.0381
+The mAP of Moderate DR is 0.1626
+The mAP of Severe DR is 0.0857
+The mAP of Proliferative DR is 0.0585
+Average mAP@5=0.5507
+The mHR of No DR is 0.7892
+The mHR of Mild DR is 0.0744
+The mHR of Moderate DR is 0.2496
+The mHR of Severe DR is 0.1473
+The mHR of Proliferative DR is 0.1137
+Average mHR@10=0.6319
+The mAP of No DR is 0.6811
+The mAP of Mild DR is 0.0257
+The mAP of Moderate DR is 0.1333
+The mAP of Severe DR is 0.0684
+The mAP of Proliferative DR is 0.0481
+Average mAP@10=0.5282
+The mHR of No DR is 0.7889
+The mHR of Mild DR is 0.0713
+The mHR of Moderate DR is 0.2472
+The mHR of Severe DR is 0.1475
+The mHR of Proliferative DR is 0.1134
+Average mHR@20=0.6311
+The mAP of No DR is 0.6645
+The mAP of Mild DR is 0.0174
+The mAP of Moderate DR is 0.1124
+The mAP of Severe DR is 0.0575
+The mAP of Proliferative DR is 0.0389
+Average mAP@20=0.5118
+SOLAR mHR of No DR is 0.7741
+SOLAR mHR of Mild DR is 0.0692
+SOLAR mHR of Moderate DR is 0.1377
+SOLAR mHR of Severe DR is 0.0264
+SOLAR mHR of Proliferative DR is 0.0122
+SOLAR Average mHR@5=0.5989
+SOLAR mAP of No DR is 0.6822
+SOLAR mAP of Mild DR is 0.0350
+SOLAR mAP of Moderate DR is 0.0747
+SOLAR mAP of Severe DR is 0.0138
+SOLAR mAP of Proliferative DR is 0.0056
+SOLAR Average mAP@5=0.5188
+The mHR of No DR is 0.7885
+The mHR of Mild DR is 0.0725
+The mHR of Moderate DR is 0.2442
+The mHR of Severe DR is 0.1475
+The mHR of Proliferative DR is 0.1099
+Average mHR@50=0.6304
+The mAP of No DR is 0.6509
+The mAP of Mild DR is 0.0114
+The mAP of Moderate DR is 0.0952
+The mAP of Severe DR is 0.0480
+The mAP of Proliferative DR is 0.0298
+Average mAP@50=0.4984
+SOLAR mHR of No DR is 0.7691
+SOLAR mHR of Mild DR is 0.0681
+SOLAR mHR of Moderate DR is 0.1387
+SOLAR mHR of Severe DR is 0.0247
+SOLAR mHR of Proliferative DR is 0.0115
+SOLAR Average mHR@10=0.5952
+SOLAR mAP of No DR is 0.6489
+SOLAR mAP of Mild DR is 0.0238
+SOLAR mAP of Moderate DR is 0.0554
+SOLAR mAP of Severe DR is 0.0086
+SOLAR mAP of Proliferative DR is 0.0037
+SOLAR Average mAP@10=0.4904
+SOLAR mHR of No DR is 0.7638
+SOLAR mHR of Mild DR is 0.0688
+SOLAR mHR of Moderate DR is 0.1387
+SOLAR mHR of Severe DR is 0.0234
+SOLAR mHR of Proliferative DR is 0.0137
+SOLAR Average mHR@20=0.5914
+SOLAR mAP of No DR is 0.6228
+SOLAR mAP of Mild DR is 0.0167
+SOLAR mAP of Moderate DR is 0.0416
+SOLAR mAP of Severe DR is 0.0052
+SOLAR mAP of Proliferative DR is 0.0024
+SOLAR Average mAP@20=0.4684
+SOLAR mHR of No DR is 0.7539
+SOLAR mHR of Mild DR is 0.0685
+SOLAR mHR of Moderate DR is 0.1438
+SOLAR mHR of Severe DR is 0.0248
+SOLAR mHR of Proliferative DR is 0.0160
+SOLAR Average mHR@50=0.5848
+SOLAR mAP of No DR is 0.5937
+SOLAR mAP of Mild DR is 0.0107
+SOLAR mAP of Moderate DR is 0.0320
+SOLAR mAP of Severe DR is 0.0029
+SOLAR mAP of Proliferative DR is 0.0015
+SOLAR Average mAP@50=0.4450

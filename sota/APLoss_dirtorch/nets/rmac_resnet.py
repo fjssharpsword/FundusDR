@@ -69,9 +69,6 @@ class ResNet_RMAC(ResNet):
         x = l2_normalize(x, axis=-1)
         return x, self.classifier(x)
 
-
-
-
 def resnet18_rmac(backbone=ResNet_RMAC, **kwargs):
     kwargs.pop('scales', None)
     return backbone(BasicBlock, [2, 2, 2, 2], 'resnet18', **kwargs)

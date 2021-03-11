@@ -4,7 +4,7 @@ import torch
 import torch.utils.data as data
 from torchvision import transforms
 
-from solar_global.datasets.datahelpers import default_loader, imresize, imcrop, imthumbnail
+from sota.solar_global.datasets.datahelpers import default_loader, imresize, imcrop, imthumbnail
 
 
 class ImagesFromList(data.Dataset):

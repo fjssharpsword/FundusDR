@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-import solar_global.layers.functional as LF
+import sota.solar_global.layers.functional as LF
 
 # --------------------------------------
 # Loss/Error layers

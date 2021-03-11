@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
 
-import solar_global.layers.functional as LF
-from solar_global.layers.normalization import L2N
+import sota.solar_global.layers.functional as LF
+from sota.solar_global.layers.normalization import L2N
 
 # --------------------------------------
 # Pooling layers

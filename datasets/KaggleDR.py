@@ -8,9 +8,13 @@ import pandas as pd
 import numpy as np
 import time
 import random
+import sys
 from sklearn.model_selection import train_test_split
 
-from config import *
+#define by myself
+sys.path.append("..") 
+from FundusDR.config import *
+#from config import *
 """
 Dataset: Diabetic Retinopathy Detection
 https://www.kaggle.com/c/diabetic-retinopathy-detection/data
@@ -61,24 +65,10 @@ class DatasetGenerator(Dataset):
     def __len__(self):
         return len(self.image_names)
 
-
-normalize = transforms.Normalize(
-   mean=[0.485, 0.456, 0.406],
-   std=[0.229, 0.224, 0.225]
-)
-
-transform_seq_tr = transforms.Compose([
-   transforms.Resize((config['TRAN_SIZE'],config['TRAN_SIZE'])),
-   transforms.CenterCrop(config['TRAN_CROP']),
-   transforms.ToTensor(),
-   #normalize,
-])
-
-transform_seq_te = transforms.Compose([
-   transforms.Resize((config['TRAN_SIZE'],config['TRAN_SIZE'])),
-   transforms.CenterCrop(config['TRAN_CROP']),
-   transforms.ToTensor(),
-   #normalize,
+transform_seq = transforms.Compose([
+    transforms.Resize((config['TRAN_SIZE'], config['TRAN_SIZE'])),
+    transforms.ToTensor() #to tesnor [0,1]
+    #transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])])
 ])
 
 PATH_TO_IMAGES_DIR = '/data/fjsdata/fundus/Fundus_DR_grading/images/resized_train_cropped/resized_train_cropped/'
@@ -87,34 +77,23 @@ PATH_TO_VAL_FILE = '/data/pycode/FundusDR/datasets/val.txt'
 PATH_TO_TEST_FILE = '/data/pycode/FundusDR/datasets/test.txt'
 
 def get_train_dataloader(batch_size, shuffle, num_workers):
-    path_to_dataset_file = None
-    if shuffle == True: #for training
-        path_to_dataset_file = [PATH_TO_TRAIN_FILE]
-    else: #for test
-        path_to_dataset_file = [PATH_TO_TRAIN_FILE, PATH_TO_VAL_FILE]
-        
-    dataset_train = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,
-                                     path_to_dataset_file=path_to_dataset_file, transform=transform_seq_tr)
+    dataset_train = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,path_to_dataset_file=[PATH_TO_TRAIN_FILE,PATH_TO_VAL_FILE], transform=transform_seq)
     #sampler_train = torch.utils.data.distributed.DistributedSampler(dataset_train) #for multi cpu and multi gpu
     #data_loader_train = DataLoader(dataset=dataset_train, batch_size=batch_size, sampler = sampler_train, 
                                    #shuffle=shuffle, num_workers=num_workers, pin_memory=True)
-    data_loader_train = DataLoader(dataset=dataset_train, batch_size=batch_size,
-                                   shuffle=shuffle, num_workers=num_workers, pin_memory=True)
+    data_loader_train = DataLoader(dataset=dataset_train, batch_size=batch_size,shuffle=shuffle, num_workers=num_workers, pin_memory=True)
     return data_loader_train
 
 def get_validation_dataloader(batch_size, shuffle, num_workers):
-    dataset_validation = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,
-                                          path_to_dataset_file=[PATH_TO_VAL_FILE], transform=transform_seq_te)
+    dataset_validation = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR, path_to_dataset_file=[PATH_TO_VAL_FILE], transform=transform_seq)
     data_loader_validation = DataLoader(dataset=dataset_validation, batch_size=batch_size,
                                    shuffle=shuffle, num_workers=num_workers, pin_memory=True)
     return data_loader_validation
 
 
 def get_test_dataloader(batch_size, shuffle, num_workers):
-    dataset_test = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,
-                                    path_to_dataset_file=[PATH_TO_TEST_FILE], transform=transform_seq_te)
-    data_loader_test = DataLoader(dataset=dataset_test, batch_size=batch_size,
-                                   shuffle=shuffle, num_workers=num_workers, pin_memory=True)
+    dataset_test = DatasetGenerator(path_to_img_dir=PATH_TO_IMAGES_DIR,path_to_dataset_file=[PATH_TO_TEST_FILE], transform=transform_seq)
+    data_loader_test = DataLoader(dataset=dataset_test, batch_size=batch_size,shuffle=shuffle, num_workers=num_workers, pin_memory=True)
     return data_loader_test
 
 
@@ -143,7 +122,8 @@ if __name__ == "__main__":
     #splitKaggleDR(dataset_path)
 
     #for debug   
-    dataloader_train = get_train_dataloader(batch_size=512, shuffle=True, num_workers=0)
+    dataloader_train = get_train_dataloader(batch_size=32, shuffle=True, num_workers=0)
     for batch_idx, (image, label) in enumerate(dataloader_train):
-        print(label[0])
+        print(image.shape)
+        print(label.shape)
         break

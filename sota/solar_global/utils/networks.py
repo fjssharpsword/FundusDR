@@ -1,8 +1,8 @@
 import os
 import torch
 
-from solar_global.utils.general import get_data_root
-from solar_global.networks.imageretrievalnet import init_network
+from sota.solar_global.utils.general import get_data_root
+from sota.solar_global.networks.imageretrievalnet import init_network
 
 def load_network(network_name='resnet101-solar-best.pth'):
     # loading network

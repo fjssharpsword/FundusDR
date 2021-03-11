@@ -13,7 +13,7 @@ SOLAR[ECCV2020]: https://github.com/tonyngjichun/SOLAR  sota/solar_global
 
 APLoss[ICCV2019]: https://github.com/naver/deep-image-retrieval sota/APLoss_dirtorch
 
-GeM[TPAMI2018]: https://github.com/filipradenovic/cnnimageretrieval-pytorch 
+GeM[TPAMI2018]: https://github.com/filipradenovic/cnnimageretrieval-pytorch sota/GeM
 
 RA-RMAC[BMVC2018]: https://github.com/jaeyoon1603/Retrieval-RegionalAttention  sota/RA-RMAC.py
 

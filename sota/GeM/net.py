@@ -194,7 +194,7 @@ class ResNet(nn.Module):
 
         return feat, torch.sigmoid(out)
 
-def Net(t_num_classes=5,pretrained=True, **kwargs):
+def Net(t_num_classes=5, pretrained=True, **kwargs):
     """Constructs a ResNet-101 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet

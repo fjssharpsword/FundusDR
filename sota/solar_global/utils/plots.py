@@ -11,7 +11,7 @@ import matplotlib.patches as patches
 from matplotlib.patches import Arrow, Circle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from solar_global.datasets.datahelpers import default_loader, unnormalise
+from sota.solar_global.datasets.datahelpers import default_loader, unnormalise
 
 def plot_ranks(qimages, images, ranks, gnd, bbxs, summary, dataset, epoch=1, n_samples=20, protocol='hard'):
 
