@@ -9,6 +9,7 @@ import time
 import argparse
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.optim import lr_scheduler
 import torch.optim as optim
@@ -18,7 +19,7 @@ from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
 from sota.APLoss_dirtorch.init_network import net
-from sota.APLoss_dirtorch.loss import APLoss
+from sota.APLoss_dirtorch.loss import APLoss, TAPLoss
 
 # command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')
@@ -50,7 +51,7 @@ def Train():
     optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
     lr_scheduler_model = lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
     #define loss function
-    criterion = APLoss().cuda()
+    criterion = TAPLoss().cuda()#APLoss().cuda() #nn.BCELoss().cuda()
     print('********************load model succeed!********************')
 
     print('********************begin training!********************')
@@ -172,17 +173,17 @@ def Test():
 
         # Hit ratio
         for i in range(N_CLASSES):
-            logger.info('The mHR of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mHRs[i])))
-        logger.info("Average mHR@{}={:.4f}".format(topk, np.mean(mHRs_avg)))
+            logger.info('APLoss mHR of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mHRs[i])))
+        logger.info("APLoss Average mHR@{}={:.4f}".format(topk, np.mean(mHRs_avg)))
         # average precision
         for i in range(N_CLASSES):
-            logger.info('The mAP of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
-        logger.info("Average mAP@{}={:.4f}".format(topk, np.mean(mAPs_avg)))
+            logger.info('APLoss mAP of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
+        logger.info("APLoss Average mAP@{}={:.4f}".format(topk, np.mean(mAPs_avg)))
         # NDCG: normalized discounted cumulative gain
 
 
 def main():
-    #Train()  # for training
+    Train()  # for training
     Test()  # for test
 
 

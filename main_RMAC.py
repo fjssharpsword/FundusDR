@@ -173,12 +173,12 @@ def Test():
 
         # Hit ratio
         for i in range(N_CLASSES):
-            logger.info('The mHR of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mHRs[i])))
-        logger.info("Average mHR@{}={:.4f}".format(topk, np.mean(mHRs_avg)))
+            logger.info('RMAC mHR of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mHRs[i])))
+        logger.info("RMAC Average mHR@{}={:.4f}".format(topk, np.mean(mHRs_avg)))
         # average precision
         for i in range(N_CLASSES):
-            logger.info('The mAP of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
-        logger.info("Average mAP@{}={:.4f}".format(topk, np.mean(mAPs_avg)))
+            logger.info('RMAC mAP of {} is {:.4f}'.format(CLASS_NAMES[i], np.mean(mAPs[i])))
+        logger.info("RMAC Average mAP@{}={:.4f}".format(topk, np.mean(mAPs_avg)))
         # NDCG: normalized discounted cumulative gain
 
 def main():
