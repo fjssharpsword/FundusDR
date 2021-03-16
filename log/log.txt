@@ -958,3 +958,99 @@ SANet mAP of Moderate DR is 0.1815
 SANet mAP of Severe DR is 0.1191
 SANet mAP of Proliferative DR is 0.1626
 SANet Average mAP@50=0.5678
+MANet mHR of No DR is 0.7715
+MANet mHR of Mild DR is 0.0838
+MANet mHR of Moderate DR is 0.2468
+MANet mHR of Severe DR is 0.1242
+MANet mHR of Proliferative DR is 0.1893
+MANet Average mHR@5=0.6198
+MANet mAP of No DR is 0.6860
+MANet mAP of Mild DR is 0.0423
+MANet mAP of Moderate DR is 0.1535
+MANet mAP of Severe DR is 0.0802
+MANet mAP of Proliferative DR is 0.1380
+MANet Average mAP@5=0.5379
+MANet mHR of No DR is 0.7705
+MANet mHR of Mild DR is 0.0810
+MANet mHR of Moderate DR is 0.2365
+MANet mHR of Severe DR is 0.1220
+MANet mHR of Proliferative DR is 0.1885
+MANet Average mHR@10=0.6173
+MANet mAP of No DR is 0.6588
+MANet mAP of Mild DR is 0.0297
+MANet mAP of Moderate DR is 0.1216
+MANet mAP of Severe DR is 0.0628
+MANet mAP of Proliferative DR is 0.1200
+MANet Average mAP@10=0.5114
+MANet mHR of No DR is 0.7694
+MANet mHR of Mild DR is 0.0766
+MANet mHR of Moderate DR is 0.2339
+MANet mHR of Severe DR is 0.1253
+MANet mHR of Proliferative DR is 0.1847
+MANet Average mHR@20=0.6159
+MANet mAP of No DR is 0.6392
+MANet mAP of Mild DR is 0.0201
+MANet mAP of Moderate DR is 0.1014
+MANet mAP of Severe DR is 0.0522
+MANet mAP of Proliferative DR is 0.1071
+MANet Average mAP@20=0.4928
+MANet mHR of No DR is 0.7698
+MANet mHR of Mild DR is 0.0752
+MANet mHR of Moderate DR is 0.2377
+MANet mHR of Severe DR is 0.1303
+MANet mHR of Proliferative DR is 0.1811
+MANet Average mHR@50=0.6166
+MANet mAP of No DR is 0.6244
+MANet mAP of Mild DR is 0.0130
+MANet mAP of Moderate DR is 0.0878
+MANet mAP of Severe DR is 0.0450
+MANet mAP of Proliferative DR is 0.0963
+MANet Average mAP@50=0.4789
+SANet mHR of No DR is 0.7913
+SANet mHR of Mild DR is 0.0767
+SANet mHR of Moderate DR is 0.2693
+SANet mHR of Severe DR is 0.1462
+SANet mHR of Proliferative DR is 0.1939
+SANet Average mHR@5=0.6379
+SANet mAP of No DR is 0.7201
+SANet mAP of Mild DR is 0.0495
+SANet mAP of Moderate DR is 0.2001
+SANet mAP of Severe DR is 0.1219
+SANet mAP of Proliferative DR is 0.1566
+SANet Average mAP@5=0.5719
+SANet mHR of No DR is 0.7954
+SANet mHR of Mild DR is 0.0773
+SANet mHR of Moderate DR is 0.2655
+SANet mHR of Severe DR is 0.1429
+SANet mHR of Proliferative DR is 0.1885
+SANet Average mHR@10=0.6403
+SANet mAP of No DR is 0.7036
+SANet mAP of Mild DR is 0.0404
+SANet mAP of Moderate DR is 0.1771
+SANet mAP of Severe DR is 0.1156
+SANet mAP of Proliferative DR is 0.1404
+SANet Average mAP@10=0.5552
+SANet mHR of No DR is 0.7953
+SANet mHR of Mild DR is 0.0781
+SANet mHR of Moderate DR is 0.2623
+SANet mHR of Severe DR is 0.1396
+SANet mHR of Proliferative DR is 0.1863
+SANet Average mHR@20=0.6397
+SANet mAP of No DR is 0.6901
+SANet mAP of Mild DR is 0.0345
+SANet mAP of Moderate DR is 0.1596
+SANet mAP of Severe DR is 0.1102
+SANet mAP of Proliferative DR is 0.1308
+SANet Average mAP@20=0.5419
+SANet mHR of No DR is 0.7974
+SANet mHR of Mild DR is 0.0736
+SANet mHR of Moderate DR is 0.2618
+SANet mHR of Severe DR is 0.1413
+SANet mHR of Proliferative DR is 0.1803
+SANet Average mHR@50=0.6408
+SANet mAP of No DR is 0.6806
+SANet mAP of Mild DR is 0.0274
+SANet mAP of Moderate DR is 0.1460
+SANet mAP of Severe DR is 0.1056
+SANet mAP of Proliferative DR is 0.1208
+SANet Average mAP@50=0.5321
