@@ -24,7 +24,6 @@ import heapq
 from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
-from datasets.kaggleDR_Triplet import get_train_dataloader as get_train_dataloader_Triplet
 from nets.MANet import MANet, ContrastiveLoss
 
 #command parameters
@@ -38,7 +37,7 @@ logger = get_logger(config['log_path'])
 
 def Train():
     print('********************load data********************')
-    dataloader_train = get_train_dataloader_Triplet(batch_size=config['BATCH_SIZE'], shuffle=True, num_workers=8, spl_num=10)
+    dataloader_train = get_train_dataloader(batch_size=config['BATCH_SIZE'], shuffle=True, num_workers=8)
     print('********************load data succeed!********************')
 
     print('********************load model********************')
@@ -69,13 +68,14 @@ def Train():
         model.train()  #set model to training mode
         loss_train = []
         with torch.autograd.enable_grad():
-            for batch_idx, (img_anc, img_pos, label) in enumerate(dataloader_train):
+            for batch_idx, (img_a, img_h, img_v, label) in enumerate(dataloader_train):
                 optimizer.zero_grad()
                 #forward
-                var_image_anc = torch.autograd.Variable(img_anc).cuda()
-                var_image_pos = torch.autograd.Variable(img_pos).cuda()
+                var_image_a = torch.autograd.Variable(img_a).cuda()
+                var_image_h = torch.autograd.Variable(img_h).cuda()
+                var_image_v = torch.autograd.Variable(img_v).cuda()
                 var_label = torch.autograd.Variable(label).cuda()
-                var_conv, var_vec, var_out = model(var_image_anc, var_image_pos)
+                var_conv, var_vec, var_out = model(var_image_a, var_image_h, var_image_v)
                 # backward and update parameters
                 loss_tensor = criterion.forward(var_out, var_label)
                 loss_tensor.backward()
@@ -121,10 +121,12 @@ def Test():
     tr_label = torch.FloatTensor().cuda()
     tr_feat = torch.FloatTensor().cuda()
     with torch.autograd.no_grad():
-        for batch_idx, (image, label) in enumerate(dataloader_train):
+        for batch_idx, (img_a, img_h, img_v, label) in enumerate(dataloader_train):
             tr_label = torch.cat((tr_label, label.cuda()), 0)
-            var_image = torch.autograd.Variable(image).cuda()
-            var_conv, var_vec, var_out = model(var_image, var_image)
+            var_image_a = torch.autograd.Variable(img_a).cuda()
+            var_image_h = torch.autograd.Variable(img_h).cuda()
+            var_image_v = torch.autograd.Variable(img_v).cuda()
+            var_conv, var_vec, var_out = model(var_image_a, var_image_h, var_image_v)
             tr_feat = torch.cat((tr_feat, var_vec.data), 0)
             sys.stdout.write('\r train set process: = {}'.format(batch_idx + 1))
             sys.stdout.flush()
@@ -132,10 +134,12 @@ def Test():
     te_label = torch.FloatTensor().cuda()
     te_feat = torch.FloatTensor().cuda()
     with torch.autograd.no_grad():
-        for batch_idx, (image, label) in enumerate(dataloader_test):
+        for batch_idx, (img_a, img_h, img_v, label) in enumerate(dataloader_test):
             te_label = torch.cat((te_label, label.cuda()), 0)
-            var_image = torch.autograd.Variable(image).cuda()
-            var_conv, var_vec, var_out = model(var_image, var_image)
+            var_image_a = torch.autograd.Variable(img_a).cuda()
+            var_image_h = torch.autograd.Variable(img_h).cuda()
+            var_image_v = torch.autograd.Variable(img_v).cuda()
+            var_conv, var_vec, var_out = model(var_image_a, var_image_h, var_image_v)
             te_feat = torch.cat((te_feat, var_vec.data), 0)
             sys.stdout.write('\r test set process: = {}'.format(batch_idx + 1))
             sys.stdout.flush()
@@ -187,7 +191,7 @@ def Test():
         #NDCG: normalized discounted cumulative gain
 
 def main():
-    #Train() #for training
+    Train() #for training
     Test() #for test
 
 if __name__ == '__main__':

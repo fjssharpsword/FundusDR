@@ -58,17 +58,29 @@ class DatasetGenerator(Dataset):
         image_name = self.image_names[index]
         image = Image.open(image_name).convert('RGB')
         label = self.labels[index]
-        if self.transform is not None:
-            image = self.transform(image)
-        return image, torch.FloatTensor(label)
+        #if self.transform is not None:
+            #image = self.transform(image)
+        return self.transform(image), transform_flip_H(image), transform_flip_V(image), torch.FloatTensor(label)
 
     def __len__(self):
         return len(self.image_names)
 
 transform_seq = transforms.Compose([
     transforms.Resize((config['TRAN_SIZE'], config['TRAN_SIZE'])),
+    #transforms.ColorJitter(brightness=0.5, contrast=0.5, hue=0.5),
     transforms.ToTensor() #to tesnor [0,1]
     #transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])])
+])
+
+transform_flip_H = transforms.Compose([
+    transforms.Resize((config['TRAN_SIZE'], config['TRAN_SIZE'])),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.ToTensor() #to tesnor [0,1]
+])
+transform_flip_V = transforms.Compose([
+    transforms.Resize((config['TRAN_SIZE'], config['TRAN_SIZE'])),
+    transforms.RandomVerticalFlip(p=0.5),
+    transforms.ToTensor() #to tesnor [0,1]
 ])
 
 PATH_TO_IMAGES_DIR = '/data/fjsdata/fundus/Fundus_DR_grading/images/resized_train_cropped/resized_train_cropped/'
@@ -123,7 +135,9 @@ if __name__ == "__main__":
 
     #for debug   
     dataloader_train = get_train_dataloader(batch_size=32, shuffle=True, num_workers=0)
-    for batch_idx, (image, label) in enumerate(dataloader_train):
+    for batch_idx, (image, image_h, image_v, label) in enumerate(dataloader_train):
         print(image.shape)
+        print(image_h.shape)
+        print(image_v.shape)
         print(label.shape)
         break
