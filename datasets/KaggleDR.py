@@ -19,7 +19,7 @@ from FundusDR.config import *
 Dataset: Diabetic Retinopathy Detection
 https://www.kaggle.com/c/diabetic-retinopathy-detection/data
 1) 35108 images
-2）Label:0 - No DR, 1 - Mild, 2 - Moderate, 3 - Severe, 4 - Proliferative DR
+2）Label:0 - No DR, 1 - Mild DR, 2 - Moderate DR, 3 - Severe DR, 4 - Proliferative DR
 """
 
 class DatasetGenerator(Dataset):
@@ -47,6 +47,16 @@ class DatasetGenerator(Dataset):
         self.image_names = image_names
         self.labels = labels
         self.transform = transform
+        """
+        #statistics of dataset
+        labels_np = np.array(labels)
+        multi_dis_num = 0
+        for i in range(len(CLASS_NAMES)):
+            num = len(np.where(labels_np[:,i]==1)[0])
+            multi_dis_num = multi_dis_num + num
+            print('Number of {} is {}'.format(CLASS_NAMES[i], num))
+        print('Number of Multi Finding is {}'.format(multi_dis_num))
+        """
 
     def __getitem__(self, index):
         """
@@ -60,7 +70,10 @@ class DatasetGenerator(Dataset):
         label = self.labels[index]
         #if self.transform is not None:
             #image = self.transform(image)
-        return self.transform(image), transform_flip_H(image), transform_flip_V(image), torch.FloatTensor(label)
+        return self.transform(image), transform_flip_H(image), transform_flip_V(image), torch.FloatTensor(label) #for manet
+        #return self.transform(image), torch.FloatTensor(label)  #for sanet 
+        #return self.transform(image), torch.FloatTensor(label), image_name #for query
+
 
     def __len__(self):
         return len(self.image_names)
@@ -134,7 +147,7 @@ if __name__ == "__main__":
     #splitKaggleDR(dataset_path)
 
     #for debug   
-    dataloader_train = get_train_dataloader(batch_size=32, shuffle=True, num_workers=0)
+    dataloader_train = get_test_dataloader(batch_size=32, shuffle=True, num_workers=0)
     for batch_idx, (image, image_h, image_v, label) in enumerate(dataloader_train):
         print(image.shape)
         print(image_h.shape)

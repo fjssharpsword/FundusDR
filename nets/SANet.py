@@ -37,10 +37,17 @@ class SANet(nn.Module):
         #Backbone: extract convolutional feature maps, 1024*8*8
         x = self.spa(x)*x 
         x = self.dense_net_121.features(x) 
+
+        map_bb = x
+
         x = self.sfa(x)
+
+        map_sa = x
+
         x = self.gem(x).view(x.size(0), -1)
         out = self.classifier(x)
-        return x, out
+
+        return x, out, map_bb, map_sa
 
 def gem(x, p=3, eps=1e-6):
     return F.avg_pool2d(x.clamp(min=eps).pow(p), (x.size(-2), x.size(-1))).pow(1. / p)

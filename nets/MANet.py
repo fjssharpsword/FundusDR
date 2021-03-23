@@ -35,7 +35,7 @@ class MANet(nn.Module):
         
     def forward(self, x, x_h, x_v):
         #Backbone: extract convolutional feature maps, 1024*8*8
-        x = self.spa(x)*x 
+        x = self.spa(x)*x
         x_conv = self.dense_net_121.features(x) 
         x_h = self.spa(x_h)*x_h 
         x_h_conv = self.dense_net_121.features(x_h) 
@@ -43,6 +43,7 @@ class MANet(nn.Module):
         x_v_conv = self.dense_net_121.features(x_v) 
         #mirror-attention
         x_h, x_v = self.mra(x_conv, x_h_conv, x_v_conv)
+
         x_h = self.gem(x_h).view(x_h.size(0), -1)
         x_v = self.gem(x_v).view(x_v.size(0), -1)
 

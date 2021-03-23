@@ -76,17 +76,19 @@ class DatasetGenerator(Dataset):
         mask_ma = self.maskIDs_MA[index]
         mask_he = self.maskIDs_HE[index] 
 
-        #show 
-        image = Image.open(image).convert('RGBA')
-        mask_ma = Image.open(mask_ma).convert('RGBA')
-        mask_ma = transparent_back(mask_ma, 'ma')
-        overlay = Image.alpha_composite(image, mask_ma)
-        mask_he = Image.open(mask_he).convert('RGBA')
-        mask_he = transparent_back(mask_he, 'he')
-        overlay = Image.alpha_composite(overlay, mask_he)
-        plt.imshow(overlay)#cmap='gray'
-        plt.axis('off')
-        plt.savefig(config['img_path']+'IDRID_test.jpg')
+        if self.imageIDs[index] == '/data/fjsdata/fundus/IDRID/ASegmentation/Images/TrainingSet/IDRiD_46.jpg':
+            #show 
+            image = Image.open(image).convert('RGBA')
+            mask_ma = Image.open(mask_ma).convert('RGBA')
+            mask_ma = transparent_back(mask_ma, 'ma')
+            overlay = Image.alpha_composite(image, mask_ma)
+            mask_he = Image.open(mask_he).convert('RGBA')
+            mask_he = transparent_back(mask_he, 'he')
+            overlay = Image.alpha_composite(overlay, mask_he)
+            plt.imshow(overlay)#cmap='gray'
+            plt.axis('off')
+
+            plt.savefig(config['img_path']+'IDRiD_xx_overlay.jpg')
 
         image = self.transform_seq_image(Image.open(image).convert('RGB'))
         mask_ma = torch.FloatTensor(np.array(self.transform_seq_mask(Image.open(mask_ma))))
@@ -137,7 +139,7 @@ def transparent_back(img, cls='he'):
 
 if __name__ == "__main__":
     #for debug   
-    dataloader_train = get_train_dataloader(batch_size=8, shuffle=True, num_workers=0)
+    dataloader_train = get_train_dataloader(batch_size=64, shuffle=True, num_workers=0)
     for batch_idx, (image, mask_ma, mask_he) in enumerate(dataloader_train):
         print(image.shape)
         print(mask_ma.shape)

@@ -54,12 +54,12 @@ def genMirrorImages():
     image_contour = image.filter(ImageFilter.SMOOTH)
     image_contour.save('/data/pycode/FundusDR/imgs/IDRiD_085_contour.jpg')
     """
-    img_path = '/data/pycode/FundusDR/imgs/IDRiD_085.jpg'
+    img_path = '/data/pycode/FundusDR/imgs/IDRiD_53.jpg'
     img = Image.open(img_path)
     img_horizontal = img.transpose(Image.FLIP_LEFT_RIGHT) #Flip left and right
-    img_horizontal.save('/data/pycode/FundusDR/imgs/IDRiD_085_horizontal.jpg')
+    img_horizontal.save('/data/pycode/FundusDR/imgs/IDRiD_53_horizontal.jpg')
     img_vertical = img.transpose(Image.FLIP_TOP_BOTTOM) #Flip top and buttom
-    img_vertical.save('/data/pycode/FundusDR/imgs/IDRiD_085_vertical.jpg')
+    img_vertical.save('/data/pycode/FundusDR/imgs/IDRiD_53_vertical.jpg')
     
 def main():
     genMirrorImages()

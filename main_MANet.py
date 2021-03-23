@@ -20,6 +20,10 @@ import torchvision
 from skimage.measure import label
 from sklearn.metrics.pairwise import cosine_similarity
 import heapq
+import torchvision.transforms as transforms
+from PIL import Image
+import matplotlib.pyplot as plt
+import torch.nn.functional as F
 #self-defined
 from config import *
 from utils.logger import get_logger
@@ -105,7 +109,7 @@ def Test():
     print('********************load model********************')
     if args.model == 'MANet':
         model = MANet(num_classes=N_CLASSES).cuda()
-        CKPT_PATH = config['CKPT_PATH'] + args.model + '_best_model.pkl'
+        CKPT_PATH = config['CKPT_PATH'] + args.model + '_best_model_v1.0.pkl'
         if os.path.exists(CKPT_PATH):
             checkpoint = torch.load(CKPT_PATH)
             model.load_state_dict(checkpoint) #strict=False
@@ -191,7 +195,7 @@ def Test():
         #NDCG: normalized discounted cumulative gain
 
 def main():
-    Train() #for training
+    #Train() #for training
     Test() #for test
 
 if __name__ == '__main__':
