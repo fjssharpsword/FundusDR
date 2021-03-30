@@ -1,11 +1,12 @@
 # encoding: utf-8
 """
-Mirror-attention for combating ambiguity in fundus image retrieval.
+Mirror Attention-based Fine Triplet Loss for fundus image retrieval.
 Author: Jason.Fang
-Update time: 10/03/2021
+Update time: 30/03/2021
 """
 import re
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torchvision
@@ -23,33 +24,142 @@ from PIL import Image
 
 #construct model
 class MANet(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, n_channels, n_classes, bilinear=True):
         super(MANet, self).__init__()
-        #backbone
-        self.spa = SpatialAttention()
-        self.dense_net_121 = torchvision.models.densenet121(pretrained=True)
-        in_ch = self.dense_net_121.classifier.in_features #1024
-        self.mra = MirrorAttention(in_ch=in_ch, k=2)
+        self.n_channels = n_channels
+        self.n_classes = n_classes
+        self.bilinear = bilinear
+
+        self.inc = DoubleConv(n_channels, 64)
+        self.down1 = Down(64, 128)
+        self.down2 = Down(128, 256)
+        self.down3 = Down(256, 512)
+        factor = 2 if bilinear else 1
+        self.down4 = Down(512, 1024 // factor)
+        self.up1 = Up(1024, 512 // factor, bilinear)
+        self.up2 = Up(512, 256 // factor, bilinear)
+        self.up3 = Up(256, 128 // factor, bilinear)
+        self.up4 = Up(128, 64, bilinear)
+        self.outc = nn.Sequential(OutConv(64, n_channels), nn.Sigmoid())
+
+        #more blocks
+        self.ma = MirrorAttention(in_ch=512, k=2)
         self.gem = GeM()
-        self.classifier = nn.Sequential(nn.Linear(in_ch, num_classes), nn.Sigmoid())
+        self.classifier = nn.Sequential(nn.Linear(512*2, n_classes), nn.Sigmoid())
+
+    def forward(self, xa, xh, xv):
+        #down-encoder
+        xa1 = self.inc(xa)
+        xa2 = self.down1(xa1)
+        xa3 = self.down2(xa2)
+        xa4 = self.down3(xa3)
+        xa5 = self.down4(xa4)
+
+        xh1 = self.inc(xh)
+        xh2 = self.down1(xh1)
+        xh3 = self.down2(xh2)
+        xh4 = self.down3(xh3)
+        xh5 = self.down4(xh4)
+
+        xv1 = self.inc(xv)
+        xv2 = self.down1(xv1)
+        xv3 = self.down2(xv2)
+        xv4 = self.down3(xv3)
+        xv5 = self.down4(xv4)
+
+        #mirror attention
+        y_ah, y_av =self.ma(xa5, xh5, xa5) 
+        xh_feat = self.gem(y_ah).view(y_ah.size(0), -1)
+        xv_feat = self.gem(y_av).view(y_av.size(0), -1)
+        xa_feat = torch.cat((xh_feat, xv_feat), 1)#dim=1
+        xa_clss = self.classifier(xa_feat)
+
+        #up- decoder
+        xh = self.up1(y_ah, xh4)
+        xh = self.up2(xh, xh3)
+        xh = self.up3(xh, xh2)
+        xh = self.up4(xh, xh1)
+        m_h = self.outc(xh)
+
+        xv = self.up1(y_av, xv4)
+        xv = self.up2(xv, xv3)
+        xv = self.up3(xv, xv2)
+        xv = self.up4(xv, xv1)
+        m_v = self.outc(xv)
         
-    def forward(self, x, x_h, x_v):
-        #Backbone: extract convolutional feature maps, 1024*8*8
-        x = self.spa(x)*x
-        x_conv = self.dense_net_121.features(x) 
-        x_h = self.spa(x_h)*x_h 
-        x_h_conv = self.dense_net_121.features(x_h) 
-        x_v = self.spa(x_v)*x_v 
-        x_v_conv = self.dense_net_121.features(x_v) 
-        #mirror-attention
-        x_h, x_v = self.mra(x_conv, x_h_conv, x_v_conv)
+        return xa_feat, xa_clss, m_h, m_v
 
-        x_h = self.gem(x_h).view(x_h.size(0), -1)
-        x_v = self.gem(x_v).view(x_v.size(0), -1)
+class DoubleConv(nn.Module):
+    """(convolution => [BN] => ReLU) * 2"""
 
-        x_vec = x_h + x_v
-        out = self.classifier(x_vec)
-        return x_conv, x_vec, out
+    def __init__(self, in_channels, out_channels, mid_channels=None):
+        super().__init__()
+        if not mid_channels:
+            mid_channels = out_channels
+        self.double_conv = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(mid_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        return self.double_conv(x)
+
+
+class Down(nn.Module):
+    """Downscaling with maxpool then double conv"""
+
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.maxpool_conv = nn.Sequential(
+            nn.MaxPool2d(2),
+            DoubleConv(in_channels, out_channels)
+        )
+
+    def forward(self, x):
+        return self.maxpool_conv(x)
+
+
+class Up(nn.Module):
+    """Upscaling then double conv"""
+
+    def __init__(self, in_channels, out_channels, bilinear=True):
+        super().__init__()
+
+        # if bilinear, use the normal convolutions to reduce the number of channels
+        if bilinear:
+            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
+        else:
+            self.up = nn.ConvTranspose2d(in_channels , in_channels // 2, kernel_size=2, stride=2)
+            self.conv = DoubleConv(in_channels, out_channels)
+
+
+    def forward(self, x1, x2):
+        x1 = self.up(x1)
+        # input is CHW
+        diffY = x2.size()[2] - x1.size()[2]
+        diffX = x2.size()[3] - x1.size()[3]
+
+        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
+                        diffY // 2, diffY - diffY // 2])
+        # if you have padding issues, see
+        # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
+        # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
+        x = torch.cat([x2, x1], dim=1)
+        return self.conv(x)
+
+
+class OutConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(OutConv, self).__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+
+    def forward(self, x):
+        return self.conv(x)
 
 def gem(x, p=3, eps=1e-6):
     return F.avg_pool2d(x.clamp(min=eps).pow(p), (x.size(-2), x.size(-1))).pow(1. / p)
@@ -67,23 +177,42 @@ class GeM(nn.Module):
     def __repr__(self):
         return self.__class__.__name__ + '(' + 'p=' + '{:.4f}'.format(self.p.data.tolist()[0]) + ', ' + 'eps=' + str(self.eps) + ')'
 
-class ContrastiveLoss(nn.Module):
-    """
-    Contrastive loss function.
-    """
-    def __init__(self, p=2, margin=10):
-        super(ContrastiveLoss, self).__init__()
-        self.dist = nn.PairwiseDistance(p=2)
+class FineTripletLoss(nn.Module):
+    #sampling all pospair and negpair
+    def __init__(self, scale=1, margin=0.25, similarity='cos', **kwargs):
+        super(FineTripletLoss, self).__init__()
+        self.scale = scale
         self.margin = margin
-        #self.rankloss = nn.MarginRankingLoss(margin=margin)
+        self.similarity = similarity
 
-    def forward(self, x_an, x_n, x_ap, x_p):
-        dis_an = self.dist(x_an, x_n)
-        dis_ap = self.dist(x_ap, x_p)
-        #target = torch.ones(len(dis_an))#dis_an>dis_ap, lbl=1
-        #dis_loss = self.rankloss(dis_an, dis_ap, target) 
-        dis_loss =torch.mean(torch.clamp((self.margin - (dis_an-dis_ap)), min=0))
-        return dis_loss
+    def forward(self, feats, labels):
+        assert feats.size(0) == labels.size(0), \
+            f"feats.size(0): {feats.size(0)} is not equal to labels.size(0): {labels.size(0)}"
+
+        mask = torch.matmul(labels, torch.t(labels))
+        #mask = torch.where(mask==2, torch.zeros_like(mask), mask) #for multi-label
+        pos_mask = mask.triu(diagonal=1)
+        neg_mask = (mask - 1).abs_().triu(diagonal=1)
+        if self.similarity == 'dot':
+            sim_mat = torch.matmul(feats, torch.t(feats))
+        elif self.similarity == 'cos':
+            feats = F.normalize(feats)
+            sim_mat = feats.mm(feats.t())
+        else:
+            raise ValueError('This similarity is not implemented.')
+
+        pos_pair_ = sim_mat[pos_mask == 1]
+        neg_pair_ = sim_mat[neg_mask == 1]
+        #neg_pair_ = sim_mat[neg_mask == 1][0:len(pos_pair_)] #for sampling part normal 
+
+        alpha_p = torch.relu(-pos_pair_ + 1 + self.margin)
+        alpha_n = torch.relu(neg_pair_ + self.margin)
+        margin_p = 1 - self.margin
+        margin_n = self.margin
+        loss_p = torch.sum(torch.exp(-self.scale * alpha_p * (pos_pair_ - margin_p)))
+        loss_n = torch.sum(torch.exp(self.scale * alpha_n * (neg_pair_ - margin_n)))
+        loss = torch.log(1 + loss_p * loss_n)
+        return loss
 
 class MirrorAttention(nn.Module): #mirror-attention block
     def __init__(self, in_ch, k):
@@ -122,10 +251,10 @@ class MirrorAttention(nn.Module): #mirror-attention block
         for conv in [self.f_av, self.f_ah]: 
             conv.apply(constant_init)
 
-    def forward(self, x, x_h, x_v):
-        B, C, H, W = x.shape
+    def forward(self, x_a, x_h, x_v):
+        B, C, H, W = x_a.shape
 
-        f_a = self.f_a(x).view(B, self.mid_ch, H * W)  # B * mid_ch * N, where N = H*W
+        f_a = self.f_a(x_a).view(B, self.mid_ch, H * W)  # B * mid_ch * N, where N = H*W
         f_v = self.f_v(x_v).view(B, self.mid_ch, H * W)
         f_h = self.f_v(x_h).view(B, self.mid_ch, H * W)
 
@@ -134,15 +263,15 @@ class MirrorAttention(nn.Module): #mirror-attention block
         f_ah = torch.bmm(f_h.permute(0, 2, 1), f_a)
         f_ah = self.softmax((self.mid_ch ** -.50) * f_ah)
 
-        g_av = self.g_av(x).view(B, self.mid_ch, H * W)
-        g_ah = self.g_ah(x).view(B, self.mid_ch, H * W)
+        g_av = self.g_av(x_a).view(B, self.mid_ch, H * W)
+        g_ah = self.g_ah(x_a).view(B, self.mid_ch, H * W)
 
         f_v = torch.bmm(g_av, f_av).view(B, self.mid_ch, H, W)  # B * mid_ch * H * W
-        f_v = self.f_av(f_v) + x
+        y_av = self.f_av(f_v) + x_a
         f_h = torch.bmm(g_ah, f_ah).view(B, self.mid_ch, H, W) 
-        f_h = self.f_ah(f_h) + x
+        y_ah = self.f_ah(f_h) + x_a
 
-        return f_h, f_v
+        return y_ah, y_av
 
 ## Kaiming weight initialisation
 def weights_init(module):
@@ -181,8 +310,9 @@ if __name__ == "__main__":
     x = torch.rand(10, 3, 256, 256)
     x_h = torch.rand(10, 3, 256, 256)
     x_v = torch.rand(10, 3, 256, 256)
-    model = MANet(num_classes=5)
-    x_conv, x_vec, out = model(x,x_h, x_v)
-    print(x_conv.size())
-    print(x_vec.size())
-    print(out.size())
+    model = MANet(n_channels=3, n_classes=5)
+    xa_feat, xa_clss, m_h, m_v = model(x,x_h, x_v)
+    print(xa_feat.size())
+    print(xa_clss.size())
+    print(m_h.size())
+    print(m_v.size())

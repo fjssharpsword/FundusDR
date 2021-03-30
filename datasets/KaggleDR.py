@@ -80,9 +80,7 @@ class DatasetGenerator(Dataset):
 
 transform_seq = transforms.Compose([
     transforms.Resize((config['TRAN_SIZE'], config['TRAN_SIZE'])),
-    #transforms.ColorJitter(brightness=0.5, contrast=0.5, hue=0.5),
     transforms.ToTensor() #to tesnor [0,1]
-    #transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])])
 ])
 
 transform_flip_H = transforms.Compose([
@@ -147,7 +145,7 @@ if __name__ == "__main__":
     #splitKaggleDR(dataset_path)
 
     #for debug   
-    dataloader_train = get_test_dataloader(batch_size=32, shuffle=True, num_workers=0)
+    dataloader_train = get_test_dataloader(batch_size=10, shuffle=True, num_workers=0)
     for batch_idx, (image, image_h, image_v, label) in enumerate(dataloader_train):
         print(image.shape)
         print(image_h.shape)

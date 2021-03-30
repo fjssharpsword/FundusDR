@@ -23,26 +23,78 @@ from PIL import Image
 
 #construct model
 class MANet(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, is_pre_trained):
         super(MANet, self).__init__()
         #backbone
-        self.spa = SpatialAttention()
         self.dense_net_121 = torchvision.models.densenet121(pretrained=True)
-        in_ch = self.dense_net_121.classifier.in_features #1024
-        self.mra = MirrorAttention(in_ch=in_ch, k=2)
+        self.in_ch = self.dense_net_121.classifier.in_features #1024
+        #for negative
+        self.f_n = nn.Sequential(
+            nn.Conv2d(self.in_ch, self.in_ch, (1, 1), (1, 1)),
+            nn.BatchNorm2d(self.in_ch),
+            nn.ReLU())
+        self.f_an = nn.Sequential(
+            nn.Conv2d(self.in_ch, self.in_ch, (1, 1), (1, 1)),
+            nn.BatchNorm2d(self.in_ch),
+            nn.ReLU())
+        #for postive
+        self.f_p = nn.Sequential(
+            nn.Conv2d(self.in_ch, self.in_ch, (1, 1), (1, 1)),
+            nn.BatchNorm2d(self.in_ch),
+            nn.ReLU())
+        self.f_ap = nn.Sequential(
+            nn.Conv2d(self.in_ch, self.in_ch, (1, 1), (1, 1)),
+            nn.BatchNorm2d(self.in_ch),
+            nn.ReLU())
+        #function
+        self.is_pre_trained = is_pre_trained
+        self.softmax = nn.Softmax(dim=-1)
         self.gem = GeM()
-        self.classifier = nn.Sequential(nn.Linear(in_ch, num_classes), nn.Sigmoid())
         
-    def forward(self, x, x_p):
-        #Backbone: extract convolutional feature maps, 1024*8*8
-        x = self.spa(x)*x 
-        x_conv = self.dense_net_121.features(x) 
-        x_p = self.spa(x_p)*x_p 
-        x_p_conv = self.dense_net_121.features(x_p) 
-        x = self.mra(x_conv, x_p_conv)
-        x_vec = self.gem(x).view(x.size(0), -1)
-        out = self.classifier(x_vec)
-        return x_conv, x_vec, out
+    def forward(self, x_a, x_p=None, x_n=None):
+        if self.is_pre_trained:#True, for train
+            #Backbone: extract convolutional feature maps, 1024*8*8
+            x_a = self.dense_net_121.features(x_a) 
+            x_p = self.dense_net_121.features(x_p)
+            x_n = self.dense_net_121.features(x_n)
+            #Mirror-attention
+            B, C, H, W = x_a.shape
+            x_an = self.f_an(x_a).view(B, self.in_ch, H * W) # B * C * HW
+            x_ap = self.f_ap(x_a).view(B, self.in_ch, H * W)  
+            x_nn = self.f_n(x_n).view(B, self.in_ch, H * W)
+            x_pp = self.f_p(x_p).view(B, self.in_ch, H * W)
+
+            z_n = torch.bmm(x_nn.permute(0, 2, 1), x_an)  # B * HW * HW
+            z_n = self.softmax(z_n)
+            z_p = torch.bmm(x_pp.permute(0, 2, 1), x_ap)
+            z_p = self.softmax(z_p)
+
+            x_a = x_a.view(B, self.in_ch, H * W)# B * C * HW
+            x_an = torch.bmm(x_a, z_n).view(B, self.in_ch, H, W)# B * C * H * W
+            x_ap = torch.bmm(x_a, z_p).view(B, self.in_ch, H, W)
+            x_p = x_p.view(B, self.in_ch, H * W)# B * C * HW
+            x_p = torch.bmm(x_p, z_p).view(B, self.in_ch, H, W)
+            x_n = x_n.view(B, self.in_ch, H * W)# B * C * HW
+            x_n = torch.bmm(x_n, z_n).view(B, self.in_ch, H, W)
+
+            #GeMLayer:
+            x_an = self.gem(x_an).view(x_an.size(0), -1)
+            x_n = self.gem(x_n).view(x_n.size(0), -1)
+            x_ap = self.gem(x_ap).view(x_ap.size(0), -1)
+            x_p = self.gem(x_p).view(x_p.size(0), -1)
+
+            return x_an, x_n, x_ap, x_p
+        else:#False, for test
+            x_a = self.dense_net_121.features(x_a) 
+            x_p = self.dense_net_121.features(x_a) 
+            B, C, H, W = x_a.shape
+            x_ap = self.f_ap(x_a).view(B, self.in_ch, H * W)
+            x_pp = self.f_p(x_p).view(B, self.in_ch, H * W)
+            z_p = torch.bmm(x_pp.permute(0, 2, 1), x_ap)
+            z_p = self.softmax(z_p)
+            x_ap = torch.bmm(x_a, z_p).view(B, self.in_ch, H, W)
+            x_ap = self.gem(x_ap).view(x_ap.size(0), -1)
+            return x_ap
 
 def gem(x, p=3, eps=1e-6):
     return F.avg_pool2d(x.clamp(min=eps).pow(p), (x.size(-2), x.size(-1))).pow(1. / p)
@@ -78,90 +130,17 @@ class ContrastiveLoss(nn.Module):
         dis_loss =torch.mean(torch.clamp((self.margin - (dis_an-dis_ap)), min=0))
         return dis_loss
 
-class MirrorAttention(nn.Module): #mirror-attention block
-    def __init__(self, in_ch, k):
-        super(MirrorAttention, self).__init__()
-
-        self.in_ch = in_ch
-        self.out_ch = in_ch
-        self.mid_ch = in_ch // k
-
-        print('Num channels:  in    out    mid')
-        print('               {:>4d}  {:>4d}  {:>4d}'.format(self.in_ch, self.out_ch, self.mid_ch))
-
-        self.f = nn.Sequential(
-            nn.Conv2d(self.in_ch, self.mid_ch, (1, 1), (1, 1)),
-            nn.BatchNorm2d(self.mid_ch),
-            nn.ReLU())
-        self.g = nn.Sequential(
-            nn.Conv2d(self.in_ch, self.mid_ch, (1, 1), (1, 1)),
-            nn.BatchNorm2d(self.mid_ch),
-            nn.ReLU())
-        self.h = nn.Conv2d(self.in_ch, self.mid_ch, (1, 1), (1, 1))
-        self.v = nn.Conv2d(self.mid_ch, self.out_ch, (1, 1), (1, 1))
-
-        self.softmax = nn.Softmax(dim=-1)
-
-        for conv in [self.f, self.g, self.h]: 
-            conv.apply(weights_init)
-        self.v.apply(constant_init)
-
-    def forward(self, x, x_p, x_n):
-        B, C, H, W = x.shape
-
-        f_x = self.f(x).view(B, self.mid_ch, H * W)  # B * mid_ch * N, where N = H*W
-        g_x = self.g(x_p).view(B, self.mid_ch, H * W)  # B * mid_ch * N, where N = H*W
-        h_x = self.h(x).view(B, self.mid_ch, H * W)  # B * mid_ch * N, where N = H*W
-
-        z = torch.bmm(f_x.permute(0, 2, 1), g_x)  # B * N * N, where N = H*W
-        attn = self.softmax((self.mid_ch ** -.50) * z)
-
-        z = torch.bmm(attn, h_x.permute(0, 2, 1))  # B * N * mid_ch, where N = H*W
-        z = z.permute(0, 2, 1).view(B, self.mid_ch, H, W)  # B * mid_ch * H * W
-
-        z = self.v(z)
-        z = z + x
-
-        return z
-
-## Kaiming weight initialisation
-def weights_init(module):
-    if isinstance(module, nn.ReLU):
-        pass
-    if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
-        nn.init.kaiming_normal_(module.weight.data)
-        nn.init.constant_(module.bias.data, 0.0)
-    elif isinstance(module, nn.BatchNorm2d):
-        pass
-def constant_init(module):
-    if isinstance(module, nn.ReLU):
-        pass
-    if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
-        nn.init.constant_(module.weight.data, 0.0)
-        nn.init.constant_(module.bias.data, 0.0)
-    elif isinstance(module, nn.BatchNorm2d):
-        pass
-
-class SpatialAttention(nn.Module):#spatial attention layer
-    def __init__(self):
-        super(SpatialAttention, self).__init__()
-
-        self.conv1 = nn.Conv2d(2, 1, kernel_size=3, padding=1, bias=False)
-        self.sigmoid = nn.Sigmoid()
-        
-    def forward(self, x):
-        avg_out = torch.mean(x, dim=1, keepdim=True)
-        max_out, _ = torch.max(x, dim=1, keepdim=True)
-        x = torch.cat([avg_out, max_out], dim=1)
-        x = self.conv1(x)
-        return self.sigmoid(x)
-
 if __name__ == "__main__":
     #for debug  
-    x = torch.rand(10, 3, 256, 256)
-    x_p = torch.rand(10, 3, 256, 256)
-    model = MANet(num_classes=5)
-    x_conv, x_vec, out = model(x,x_p)
-    print(x_conv.size())
-    print(x_vec.size())
-    print(out.size())
+    a = torch.rand(10, 3, 256, 256)
+    p = torch.rand(10, 3, 256, 256)
+    n = torch.rand(10, 3, 256, 256)
+    model = MANet(is_pre_trained=True)
+    x_an, x_n, x_ap, x_p = model(a, p, n)
+    conloss = ContrastiveLoss()
+    loss = conloss(x_an, x_n, x_ap, x_p)
+    print(loss)
+    #test
+    model = MANet(is_pre_trained=False)
+    x_a = model(a)
+    print(x_a.size())

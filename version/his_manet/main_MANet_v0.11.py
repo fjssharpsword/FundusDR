@@ -28,7 +28,7 @@ import torch.nn.functional as F
 from config import *
 from utils.logger import get_logger
 from datasets.KaggleDR import get_train_dataloader, get_validation_dataloader, get_test_dataloader
-from nets.MANet import MANet, FineTripletLoss
+from nets.MANet import MANet, ContrastiveLoss
 
 #command parameters
 parser = argparse.ArgumentParser(description='For FundusDR')
@@ -47,7 +47,7 @@ def Train():
     print('********************load model********************')
     # initialize and load the model
     if args.model == 'MANet':
-        model = MANet(n_channels=3, n_classes=N_CLASSES).cuda()
+        model = MANet(num_classes=N_CLASSES).cuda()
         CKPT_PATH = config['CKPT_PATH'] + args.model + '_best_model.pkl'
         if os.path.exists(CKPT_PATH):
             checkpoint = torch.load(CKPT_PATH)
@@ -56,14 +56,11 @@ def Train():
     else: 
         print('No required model')
         return #over
-    model = nn.DataParallel(model).cuda()  # make model available multi GPU cores training    
     torch.backends.cudnn.benchmark = True  # improve train speed slightly
     optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
     lr_scheduler_model = lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
     #define loss function
-    bceloss = nn.BCELoss() 
-    mseloss = nn.MSELoss()
-    triloss = FineTripletLoss()
+    criterion = nn.BCELoss().cuda() #ContrastiveLoss().cuda()
     print('********************load model succeed!********************')
 
     print('********************begin training!********************')
@@ -82,13 +79,9 @@ def Train():
                 var_image_h = torch.autograd.Variable(img_h).cuda()
                 var_image_v = torch.autograd.Variable(img_v).cuda()
                 var_label = torch.autograd.Variable(label).cuda()
-                var_feat, var_clss, mask_h, mask_v = model(var_image_a, var_image_h, var_image_v)
+                var_conv, var_vec, var_out = model(var_image_a, var_image_h, var_image_v)
                 # backward and update parameters
-                #loss_tensor = bceloss.forward(var_clss, var_label)
-                loss_h = mseloss.forward(mask_h, var_image_h)
-                loss_v = mseloss.forward(mask_v, var_image_v)
-
-                loss_tensor = triloss.forward(var_feat, var_label)
+                loss_tensor = criterion.forward(var_out, var_label)
                 loss_tensor.backward()
                 optimizer.step()
                 #show 
@@ -101,7 +94,7 @@ def Train():
         # save checkpoint
         if loss_min > np.mean(loss_train):
             loss_min = np.mean(loss_train)
-            torch.save(model.module.state_dict(), config['CKPT_PATH'] + args.model + '_best_model.pkl')
+            torch.save(model.state_dict(), config['CKPT_PATH'] + args.model + '_best_model.pkl')
             print(' Epoch: {} model has been already save!'.format(epoch + 1))
 
         time_elapsed = time.time() - since
@@ -116,7 +109,7 @@ def Test():
     print('********************load model********************')
     if args.model == 'MANet':
         model = MANet(num_classes=N_CLASSES).cuda()
-        CKPT_PATH = config['CKPT_PATH'] + args.model + '_best_model.pkl'
+        CKPT_PATH = config['CKPT_PATH'] + args.model + '_best_model_v1.0.pkl'
         if os.path.exists(CKPT_PATH):
             checkpoint = torch.load(CKPT_PATH)
             model.load_state_dict(checkpoint) #strict=False
@@ -137,8 +130,8 @@ def Test():
             var_image_a = torch.autograd.Variable(img_a).cuda()
             var_image_h = torch.autograd.Variable(img_h).cuda()
             var_image_v = torch.autograd.Variable(img_v).cuda()
-            var_feat, var_clss, mask_h, mask_v = model(var_image_a, var_image_h, var_image_v)
-            tr_feat = torch.cat((tr_feat, var_feat.data), 0)
+            var_conv, var_vec, var_out = model(var_image_a, var_image_h, var_image_v)
+            tr_feat = torch.cat((tr_feat, var_vec.data), 0)
             sys.stdout.write('\r train set process: = {}'.format(batch_idx + 1))
             sys.stdout.flush()
 
@@ -150,8 +143,8 @@ def Test():
             var_image_a = torch.autograd.Variable(img_a).cuda()
             var_image_h = torch.autograd.Variable(img_h).cuda()
             var_image_v = torch.autograd.Variable(img_v).cuda()
-            var_feat, var_clss, mask_h, mask_v = model(var_image_a, var_image_h, var_image_v)
-            te_feat = torch.cat((te_feat, var_feat.data), 0)
+            var_conv, var_vec, var_out = model(var_image_a, var_image_h, var_image_v)
+            te_feat = torch.cat((te_feat, var_vec.data), 0)
             sys.stdout.write('\r test set process: = {}'.format(batch_idx + 1))
             sys.stdout.flush()
 
@@ -202,7 +195,7 @@ def Test():
         #NDCG: normalized discounted cumulative gain
 
 def main():
-    Train() #for training
+    #Train() #for training
     Test() #for test
 
 if __name__ == '__main__':

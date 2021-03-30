@@ -163,10 +163,18 @@ def getkeypoints():
     img = Image.fromarray(img).convert('RGB')
     img.save('/data/pycode/FundusDR/imgs/IDRiD_53_match_h.jpg')
     """
-    
+
+def edgeDection():
+    img_path = '/data/pycode/FundusDR/imgs/IDRiD_53.jpg'
+    img = Image.open(img_path).convert('RGB')
+    canny = cv2.Sobel(np.array(img), cv2.CV_64F, 1, 0, ksize=-1)
+    img = Image.fromarray(canny).convert('RGB')
+    img.save('/data/pycode/FundusDR/imgs/IDRiD_53_canny.jpg')
+
 def main():
     #genMirrorImages()
-    getkeypoints()
+    #getkeypoints()
+    edgeDection()
 
 if __name__ == '__main__':
     main()
