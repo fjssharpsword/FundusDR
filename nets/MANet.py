@@ -205,19 +205,21 @@ class FineTripletLoss(nn.Module):
         neg_pair_ = sim_mat[neg_mask == 1]
 
         #neg_pair_ = sim_mat[neg_mask == 1][0:len(pos_pair_)] #for sampling part normal 
+        """
         degs = feats.view(feats.size(0), 2, int(feats.size(1)/2))
         degs = F.cosine_similarity(degs[:,0,:], degs[:,1,:])
         degs = torch.unsqueeze(degs, 1)
         deg_mat = torch.mm(1/degs, torch.t(degs))
         deg_mat = deg_mat.mul(mask)
         pos_pair_deg = deg_mat[pos_mask == 1]
+        """
+        #loss_p = torch.sum(torch.exp(-pos_pair_deg * alpha_p * (pos_pair_ - margin_p)))
 
         alpha_p = torch.relu(-pos_pair_ + 1 + self.margin)
         alpha_n = torch.relu(neg_pair_ + self.margin)
         margin_p = 1 - self.margin
         margin_n = self.margin
-        #loss_p = torch.sum(torch.exp(-self.scale * alpha_p * (pos_pair_ - margin_p)))
-        loss_p = torch.sum(torch.exp(-pos_pair_deg * alpha_p * (pos_pair_ - margin_p)))
+        loss_p = torch.sum(torch.exp(-self.scale * alpha_p * (pos_pair_ - margin_p)))
         loss_n = torch.sum(torch.exp(self.scale * alpha_n * (neg_pair_ - margin_n)))
         loss = torch.log(1 + loss_p * loss_n)
         return loss

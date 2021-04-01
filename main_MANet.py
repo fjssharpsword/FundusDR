@@ -84,12 +84,12 @@ def Train():
                 var_label = torch.autograd.Variable(label).cuda()
                 var_feat, var_clss, mask_h, mask_v = model(var_image_a, var_image_h, var_image_v)
                 # backward and update parameters
-                loss_h = mseloss.forward(mask_h, var_image_h)
-                loss_v = mseloss.forward(mask_v, var_image_v)
-                loss_tri = triloss.forward(var_feat, var_label)
-                #loss_cls = bceloss.forward(var_clss, var_label)
+                #loss_h = mseloss.forward(mask_h, var_image_h)
+                #loss_v = mseloss.forward(mask_v, var_image_v)
+                #loss_tri = triloss.forward(var_feat, var_label)
+                loss_cls = bceloss.forward(var_clss, var_label)
 
-                loss_tensor = loss_h + loss_v + loss_tri
+                loss_tensor = loss_cls
                 loss_tensor.backward()
                 optimizer.step()
                 #show 
@@ -110,8 +110,8 @@ def Train():
 
 def Test():
     print('********************load data********************')
-    dataloader_train = get_train_dataloader(batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=8)
-    dataloader_test = get_test_dataloader(batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=8)
+    dataloader_train = get_train_dataloader(batch_size=8, shuffle=False, num_workers=8) #config['BATCH_SIZE']
+    dataloader_test = get_test_dataloader(batch_size=8, shuffle=False, num_workers=8) 
     print('********************load data succeed!********************')
 
     print('********************load model********************')
