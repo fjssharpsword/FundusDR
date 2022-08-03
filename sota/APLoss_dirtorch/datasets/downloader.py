@@ -1,7 +1,7 @@
 import os
 import os.path as osp
 
-DB_ROOT = '/data/home/fangjiansheng/code/DR/dataset/images'
+DB_ROOT = '/data/home/fjs/code/DR/dataset/images'
 
 def download_dataset(dataset):
     if not os.path.isdir(DB_ROOT):

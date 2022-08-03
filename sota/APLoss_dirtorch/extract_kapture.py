@@ -2,7 +2,7 @@ import os
 import tqdm
 import torch.nn.functional as F
 
-os.environ['DB_ROOT'] = '/data/home/fangjiansheng/code/DR/APLoss'
+os.environ['DB_ROOT'] = '/data/home/fjs/code/DR/APLoss'
 
 from APLoss_dirtorch.utils import common
 from APLoss_dirtorch.utils.common import tonumpy, pool

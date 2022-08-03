@@ -1,7 +1,7 @@
 import os
 from .generic import ImageListRelevants
 
-DB_ROOT = '/data/home/fangjiansheng/code/DR/dataset/images'
+DB_ROOT = '/data/home/fjs/code/DR/dataset/images'
 
 class Oxford5K(ImageListRelevants):
     def __init__(self):

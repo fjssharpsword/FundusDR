@@ -1,7 +1,7 @@
 import os
 from .generic import ImageListLabels
 
-DB_ROOT = '/data/home/fangjiansheng/code/DR/dataset/images'
+DB_ROOT = '/data/home/fjs/code/DR/dataset/images'
 
 class Landmarks_clean(ImageListLabels):
     def __init__(self):

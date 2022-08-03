@@ -1,7 +1,7 @@
 from .generic import ImageListRelevants
 import os
 
-DB_ROOT = '/data/home/fangjiansheng/code/DR/dataset/images'
+DB_ROOT = '/data/home/fjs/code/DR/dataset/images'
 
 class Paris6K(ImageListRelevants):
     def __init__(self):

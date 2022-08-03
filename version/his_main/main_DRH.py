@@ -28,7 +28,7 @@ args = parser.parse_args()
 # config
 os.environ['CUDA_VISIBLE_DEVICES'] = config['CUDA_VISIBLE_DEVICES']
 logger = get_logger(config['log_path'])
-result_file = '/data/home/fangjiansheng/code/DR/Fundus2.0/result_DRH.txt'
+result_file = '/data/home/fjs/code/DR/Fundus2.0/result_DRH.txt'
 
 
 def Train():
