@@ -2,7 +2,7 @@
 """
 Training implementation for Mirror Attention
 Author: Jason.Fang
-Update time: 11/03/2021
+Update time: 06/09/2022
 """
 import re
 import sys
@@ -203,7 +203,7 @@ def Test():
         #NDCG: normalized discounted cumulative gain
 
 def main():
-    Train() #for training
+    #Train() #for training
     Test() #for test
 
 if __name__ == '__main__':

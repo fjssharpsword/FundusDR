@@ -25,6 +25,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import seaborn as sns
+from pyheatmap.heatmap import HeatMap
 #self-defined
 from config import *
 from utils.logger import get_logger
@@ -295,7 +296,7 @@ def VisMap():
     #sns_temp = sns_temp.get_figure()
     #sns_temp.savefig('/data/pycode/FundusDR/imgs/IDRiD_46_sns.jpg', dpi = 400)
     #resize and convert L to RGB
-    #heat_map = cv2.resize(heat_map,(height, width))
+    heat_map = cv2.resize(heat_map,(height, width))
     heat_map = np.uint8(heat_map * 255.0)
     heat_map = cv2.applyColorMap(heat_map, cv2.COLORMAP_JET) #L to RGB
     
@@ -316,16 +317,67 @@ def VisMap():
     #heat_map = heat_map  + np.array(mask_he) + np.array(mask_ma)
     #heat_map = np.where(heat_map>255, np.full_like(heat_map, 255), heat_map) 
 
-    #output_img = cv2.addWeighted(query_img, 0.7, heat_map, 0.3, 0)
-    plt.imshow(heat_map)
+    output_img = cv2.addWeighted(query_img, 0.7, heat_map, 0.3, 0)
+    plt.imshow(output_img)
     plt.axis('off')
     plt.savefig('/data/pycode/FundusDR/imgs/IDRiD_46_for_NN.jpg')
 
+def VisMap22():
+    print('********************load model********************')
+    if args.model == 'SANet':
+        model = SANet(num_classes=N_CLASSES).cuda()
+        CKPT_PATH = config['CKPT_PATH'] + args.model + '_best_model_v1.0.pkl'
+        if os.path.exists(CKPT_PATH):
+            checkpoint = torch.load(CKPT_PATH)
+            model.load_state_dict(checkpoint) #strict=False
+            print("=> Loaded well-trained checkpoint from: "+CKPT_PATH)
+    else: 
+        print('No required model')
+        return #over
+    torch.backends.cudnn.benchmark = True  # improve train speed slightly
+    model.eval()#turn to test mode
+    print('******************** load model succeed!********************')
+
+    query_img_path = '/data/pycode/FundusDR/imgs/IDRiD_53.jpg' #IDRiD_53.jpg  IDRiD_09.jpg
+    transform_seq = transforms.Compose([
+        transforms.Resize((config['TRAN_SIZE'], config['TRAN_SIZE'])),
+        transforms.ToTensor() #to tesnor [0,1]
+    ])
+
+    query_img = Image.open(query_img_path).convert('RGB')
+    var_image = torch.autograd.Variable(torch.unsqueeze(transform_seq(query_img),0)).cuda()
+    x, out, map_bb, map_sa = model(var_image)
+
+    heat_map = map_sa.data.cpu().squeeze(0).sum(dim=0) #1024*8*8
+    heat_map = heat_map.squeeze(0).numpy()#.permute(1, 2, 0)
+    heat_map = heat_map - heat_map.min()
+    heat_map = heat_map / heat_map.max() 
+    #plot heat map
+    """
+    sns_temp = sns.heatmap(heat_map, cmap="hot_r") #hot_r #OrRd
+    sns_temp = sns_temp.get_figure()
+    sns_temp.savefig('/data/pycode/FundusDR/imgs/IDRiD_53_sns_22.jpg', dpi = 400)
+    """
+
+    #resize and convert L to RGB
+    """
+    query_img =  np.asarray(query_img)
+    width, height = query_img.shape[0],query_img.shape[1]
+    heat_map = cv2.resize(heat_map,(height, width))
+    heat_map = np.uint8(heat_map * 255.0)
+    heat_map = cv2.applyColorMap(heat_map, cv2.COLORMAP_JET) #L to RGB
+    output_img = cv2.addWeighted(query_img, 0.7, heat_map, 0.3, 0)
+    plt.imshow(output_img)
+    plt.axis('off')
+    plt.savefig('/data/pycode/FundusDR/imgs/IDRiD_53_map_sa_22.jpg', dpi = 400)
+    """ 
+    
 def main():
     #Train() #for training
     #Test() #for test
     #VisQuery()#for show
-    VisMap()
+    #VisMap()
+    VisMap22()
 
 if __name__ == '__main__':
     main()
